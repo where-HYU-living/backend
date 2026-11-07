@@ -1,0 +1,6 @@
+
+
+
+[
+  { "id": 11, "name": "참조 오류 학과", "college": "테스트 공과대학", "defaultBuildingIds": [999] }
+]

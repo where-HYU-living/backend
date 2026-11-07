@@ -1,0 +1,10 @@
+jwt:
+  secret: ""
+
+external:
+  molit:
+    key: ""
+  kakao:
+    rest-key: ""
+  tmap:
+    key: ""

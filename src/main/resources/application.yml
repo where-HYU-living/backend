@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: chatatda-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/chatatda}
+    username: ${DB_USER:chatatda}
+    password: ${DB_PASSWORD:chatatda}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  profiles:
+    include: local
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
+
+jwt:
+  secret: ${JWT_SECRET:}
+
+app:
+  mail:
+    mode: ${MAIL_MODE:log}
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    location: classpath:fixtures/
+  ingest:
+    enabled: ${INGEST_ENABLED:false}
+    months: 12
+
+external:
+  molit:
+    base-url: https://apis.data.go.kr/1613000
+    key: ${MOLIT_KEY:}
+
+pricing:
+  conversion-rate: 0.046
+  grade-fair: 0.10
+  grade-slight: 0.25
+  grade-high: 0.50
+  min-sample: 10
+  area-tolerance: 0.30
+  period-months: 12
+  default-contract-months: 24
+  baseline-mgmt-fee: 71000
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}

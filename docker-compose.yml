@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: chatatda-db
+    environment:
+      POSTGRES_DB: chatatda
+      POSTGRES_USER: chatatda
+      POSTGRES_PASSWORD: chatatda
+    ports:
+      - "5432:5432"
+    volumes:
+      - chatatda-db-data:/var/lib/postgresql/data
+
+volumes:
+  chatatda-db-data:

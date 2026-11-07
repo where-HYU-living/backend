@@ -1,0 +1,10 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.vscode/
+application-local.yml
+application-local.yaml
+.env
+*.pem
