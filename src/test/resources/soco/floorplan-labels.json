@@ -1,3 +1,8 @@
 [
-  { "sha256": "5e8fc6a7d638f2dbaf456073e4e3477690defafce653ffd1a36b9ef2a15b7c59", "unitType": "19A", "exclusiveAreaM2": 19.63 }
+  {
+    "sha256": "5e8fc6a7d638f2dbaf456073e4e3477690defafce653ffd1a36b9ef2a15b7c59",
+    "unitType": "19A",
+    "exclusiveAreaM2": 19.63,
+    "floorplanId": 1
+  }
 ]

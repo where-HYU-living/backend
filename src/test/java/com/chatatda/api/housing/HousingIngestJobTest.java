@@ -23,6 +23,9 @@ class HousingIngestJobTest extends IntegrationTest {
     @Autowired
     private JdbcTemplate jdbc;
 
+    @Autowired
+    private com.chatatda.api.floorplan.FloorPlanSeeder floorPlanSeeder;
+
     @BeforeEach
     void addresses() {
         dong("서울 성동구 홍익동 150 청아진 청년안심주택", "홍익동");
@@ -76,6 +79,29 @@ class HousingIngestJobTest extends IntegrationTest {
         assertThat(jdbc.queryForObject("select unit_type_name from housing_floorplan_images where url like '%997b2f9c%fileSn=3'",
                 String.class)).isEqualTo("19A");
         assertThat(report.unlabeledImages()).isPositive();
+    }
+
+    @Test
+    void labelFloorplanId_linksUnitType_whenFloorplanExists() {
+        job.run(TODAY);
+
+        assertThat(jdbc.queryForObject("""
+                select u.floorplan_id from housing_unit_types u join housing h on h.id = u.housing_id
+                where h.soco_home_code = '20000580' and u.name = '19A'""", Long.class)).isEqualTo(1L);
+    }
+
+    @Test
+    void labelFloorplanId_notLinked_whenFloorplanMissing() {
+        jdbc.update("delete from floorplans where id = 1");
+        try {
+            job.run(TODAY);
+
+            assertThat(jdbc.queryForObject("""
+                    select u.floorplan_id from housing_unit_types u join housing h on h.id = u.housing_id
+                    where h.soco_home_code = '20000580' and u.name = '19A'""", Long.class)).isNull();
+        } finally {
+            floorPlanSeeder.seed();
+        }
     }
 
     @Test

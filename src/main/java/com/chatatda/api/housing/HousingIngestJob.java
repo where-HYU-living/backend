@@ -55,7 +55,14 @@ public class HousingIngestJob {
     public record Report(int homes, int announcements, int unlabeledImages, List<String> failures) {
     }
 
-    record Label(String sha256, String unitType, Double exclusiveAreaM2) {
+    /**
+     * floorplanId: 이 이미지를 3D 로 옮긴 평면도(floorplans 테이블) id. use 가 "listing" 이면 매물 데모로 넘긴 평면도라서
+     * 주택형에는 연결하지 않는다.
+     */
+    record Label(String sha256, String unitType, Double exclusiveAreaM2, Long floorplanId, String use) {
+        boolean linksToUnitType() {
+            return floorplanId != null && !"listing".equalsIgnoreCase(use);
+        }
     }
 
     private final SocoClient client;
@@ -236,6 +243,23 @@ public class HousingIngestJob {
                         ps.setLong(1, housingId);
                         ps.setArray(2, ps.getConnection().createArrayOf("varchar", names.toArray()));
                     });
+        }
+
+        for (ImageRow image : images) {
+            if (image.label() == null || !image.label().linksToUnitType()) {
+                continue;
+            }
+            Long floorplanId = image.label().floorplanId();
+            Integer exists = jdbc.queryForObject("select count(*) from floorplans where id = ?", Integer.class, floorplanId);
+            if (exists == null || exists == 0) {
+                log.warn("평면도 {} 가 floorplans 에 아직 없어서 연결 못 함: 단지 {} {}", floorplanId, home.name(), image.label().unitType());
+                continue;
+            }
+            int linked = jdbc.update("update housing_unit_types set floorplan_id = ? where housing_id = ? and name = ?",
+                    floorplanId, housingId, image.label().unitType());
+            if (linked == 0) {
+                log.warn("평면도 {} 를 붙일 주택형을 못 찾음: 단지 {} 주택형 '{}'", floorplanId, home.name(), image.label().unitType());
+            }
         }
 
         jdbc.update("delete from housing_floorplan_images where housing_id = ?", housingId);
