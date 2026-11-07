@@ -1,5 +1,6 @@
 # 한 번에 DB + 서버: `docker compose up --build` (Docker Desktop 에서는 backend ▶ 버튼)
 # 서버 주소 http://localhost:8080  ·  Swagger http://localhost:8080/swagger-ui.html
+# 8080 이 이미 쓰이고 있으면 다른 포트로: API_PORT=8081 docker compose up --build
 services:
   db:
     image: postgres:16
@@ -25,7 +26,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "${API_PORT:-8080}:8080"
     environment:
       DB_URL: jdbc:postgresql://db:5432/chatatda
       DB_USER: chatatda
