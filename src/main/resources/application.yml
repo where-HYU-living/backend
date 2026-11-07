@@ -26,11 +26,19 @@ app:
   ingest:
     enabled: ${INGEST_ENABLED:false}
     months: 12
+  bus-stops:
+    location: classpath:geo/bus-stops.json
 
 external:
   molit:
     base-url: https://apis.data.go.kr/1613000
     key: ${MOLIT_KEY:}
+  tmap:
+    base-url: https://apis.openapi.sk.com
+    key: ${TMAP_KEY:}
+  kakao:
+    base-url: https://dapi.kakao.com
+    rest-key: ${KAKAO_REST_KEY:}
 
 pricing:
   conversion-rate: 0.046

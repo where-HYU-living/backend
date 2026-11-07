@@ -3,6 +3,8 @@ package com.chatatda.api.listing;
 import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
 import com.chatatda.api.common.PageResponse;
+import com.chatatda.api.geo.NearbyService;
+import com.chatatda.api.geo.Place;
 import com.chatatda.api.geo.WalkService;
 import com.chatatda.api.listing.ListingDtos.ListingDetail;
 import com.chatatda.api.listing.ListingDtos.ListingSummary;
@@ -30,16 +32,18 @@ public class ListingService {
     private final ListingRepository listings;
     private final PriceCheckService priceCheck;
     private final WalkService walk;
+    private final NearbyService nearby;
     private final ProfileService profiles;
     private final PricingProperties properties;
     private final PriceCalculator calculator;
     private final Clock clock;
 
     public ListingService(ListingRepository listings, PriceCheckService priceCheck, WalkService walk,
-                          ProfileService profiles, PricingProperties properties, Clock clock) {
+                          NearbyService nearby, ProfileService profiles, PricingProperties properties, Clock clock) {
         this.listings = listings;
         this.priceCheck = priceCheck;
         this.walk = walk;
+        this.nearby = nearby;
         this.profiles = profiles;
         this.properties = properties;
         this.calculator = new PriceCalculator(properties);
@@ -84,6 +88,12 @@ public class ListingService {
     @Transactional(readOnly = true)
     public PriceCheckDto priceCheck(long id, Long userIdOrNull) {
         return priceCheck.check(input(load(id)), userIdOrNull);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Place> nearby(long id, int radius) {
+        Listing l = load(id);
+        return nearby.near(l.getLat(), l.getLng(), radius);
     }
 
     public ListingSummary summaryOf(Listing l, Long buildingId, Long userIdOrNull) {

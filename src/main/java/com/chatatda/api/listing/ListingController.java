@@ -4,6 +4,7 @@ import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.CurrentUser;
 import com.chatatda.api.common.ErrorCode;
 import com.chatatda.api.common.PageResponse;
+import com.chatatda.api.geo.Place;
 import com.chatatda.api.listing.ListingDtos.ListingDetail;
 import com.chatatda.api.listing.ListingDtos.ListingSummary;
 import com.chatatda.api.pricing.Grade;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ListingController {
 
     private static final int MAX_PAGE_SIZE = 100;
+    private static final int MAX_NEARBY_RADIUS = 500;
 
     private final ListingService service;
 
@@ -55,6 +57,14 @@ public class ListingController {
     public ListingDetail detail(@PathVariable long id, @RequestParam(required = false) Long buildingId,
                                 @CurrentUser(required = false) Long userId) {
         return service.detail(id, buildingId, userId);
+    }
+
+    @GetMapping("/{id}/nearby")
+    public List<Place> nearby(@PathVariable long id, @RequestParam(defaultValue = "300") int radius) {
+        if (radius < 1) {
+            throw invalid("radius", "1 이상이어야 해요.");
+        }
+        return service.nearby(id, Math.min(radius, MAX_NEARBY_RADIUS));
     }
 
     @GetMapping("/{id}/price-check")

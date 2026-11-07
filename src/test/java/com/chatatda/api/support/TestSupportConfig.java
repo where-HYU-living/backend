@@ -20,4 +20,22 @@ public class TestSupportConfig {
     FakeMailPort fakeMailPort() {
         return new FakeMailPort();
     }
+
+    @Bean
+    @Primary
+    FakeWalkPort fakeWalkPort() {
+        return new FakeWalkPort();
+    }
+
+    @Bean
+    @Primary
+    FakePlacePort fakePlacePort() {
+        return new FakePlacePort();
+    }
+
+    @Bean
+    @Primary
+    FakeAddressPort fakeAddressPort() {
+        return new FakeAddressPort();
+    }
 }

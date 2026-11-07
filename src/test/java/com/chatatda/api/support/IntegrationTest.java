@@ -1,6 +1,8 @@
 package com.chatatda.api.support;
 
 import com.chatatda.api.common.JwtProvider;
+import com.chatatda.api.geo.NearbyService;
+import com.chatatda.api.geo.WalkService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -32,6 +34,7 @@ public abstract class IntegrationTest {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("jwt.secret", () -> TEST_JWT_SECRET);
         registry.add("app.seed.location", () -> "classpath:test-fixtures/");
+        registry.add("app.bus-stops.location", () -> "classpath:test-fixtures/bus-stops.json");
         registry.add("pricing.conversion-rate", () -> "0.06");
         registry.add("pricing.baseline-mgmt-fee", () -> "71000");
     }
@@ -46,7 +49,22 @@ public abstract class IntegrationTest {
     protected FakeMailPort mail;
 
     @Autowired
+    protected FakeWalkPort walkPort;
+
+    @Autowired
+    protected FakePlacePort placePort;
+
+    @Autowired
+    protected FakeAddressPort addressPort;
+
+    @Autowired
     protected JwtProvider jwtProvider;
+
+    @Autowired
+    private WalkService walkService;
+
+    @Autowired
+    private NearbyService nearbyService;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -55,7 +73,12 @@ public abstract class IntegrationTest {
     void resetState() {
         clock.reset();
         mail.clear();
-        jdbc.execute("truncate table users, email_codes restart identity cascade");
+        walkPort.reset();
+        placePort.reset();
+        addressPort.reset();
+        walkService.clearCaches();
+        nearbyService.clearCaches();
+        jdbc.execute("truncate table users, email_codes, walk_cache restart identity cascade");
     }
 
     protected String bearer(long userId) {
