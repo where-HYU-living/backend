@@ -11,3 +11,4 @@
 - 청년안심주택 평면도 연결: `floorplan-labels.json` 의 `floorplanId` 를 수집 때 주택형(`housing_unit_types.floorplan_id`)에 붙인다. `"use": "listing"` 인 줄은 매물로 넘긴 평면도라 붙이지 않는다. 그 id 의 `floorplans/{id}.json` 이 아직 없으면 경고만 남기고 건너뛴다.
 - 청년안심주택 단지·주택형·공고는 파일이 아니라 서버가 soco 에서 매일 수집한다 (`HOUSING_INGEST_ENABLED=true`)
 - 통합 테스트는 `classpath:test-fixtures/` 를 쓰므로 이 파일들과 무관하다.
+- 매물(`listings.json`)·기숙사(`dorms.json`)의 `floorplanId` 는 시드가 **테이블이 비어 있을 때만** 들어가는 탓에 이미 시드된 DB 에는 반영되지 않는다. 그래서 서버가 뜰 때마다 `FloorPlanLinker` 가 `floorplan_id` 가 비어 있고 그 평면도가 실제로 있는 행만 채운다 (이미 값이 있는 행은 건드리지 않음, 몇 번을 돌려도 같다).
