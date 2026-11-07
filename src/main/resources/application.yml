@@ -32,6 +32,12 @@ app:
     months: 12
   bus-stops:
     location: classpath:geo/bus-stops.json
+  housing-ingest:
+    enabled: ${HOUSING_INGEST_ENABLED:false}
+    districts: 성동구,동대문구
+    notice-months: 12
+    request-interval-ms: 1000
+    labels-location: classpath:fixtures/floorplan-labels.json
 
 external:
   molit:
@@ -40,6 +46,8 @@ external:
   tmap:
     base-url: https://apis.openapi.sk.com
     key: ${TMAP_KEY:}
+  soco:
+    base-url: https://soco.seoul.go.kr
   kakao:
     base-url: https://dapi.kakao.com
     rest-key: ${KAKAO_REST_KEY:}

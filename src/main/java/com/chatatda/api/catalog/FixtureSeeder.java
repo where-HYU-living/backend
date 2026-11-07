@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.time.Clock;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -41,6 +42,13 @@ public class FixtureSeeder {
                           Long deposit, Long rent, Long mgmtFee, Double areaM2, Integer floor, RoomType roomType,
                           String thumbnailUrl, List<String> options, List<String> photos, Long floorplanId,
                           Integer builtYear, String description) {
+    }
+
+    record DormRoomFixture(Long id, String name, Integer capacity, Long semesterFee, Integer semesterMonths,
+                           Boolean mealIncluded, Long floorplanId) {
+    }
+
+    record DormFixture(Long id, String name, List<DormRoomFixture> roomTypes) {
     }
 
     private final JdbcTemplate jdbc;
@@ -79,6 +87,7 @@ public class FixtureSeeder {
             seedBuildings();
             seedDepartments();
             seedListings();
+            seedDorms();
         });
     }
 
@@ -158,6 +167,35 @@ public class FixtureSeeder {
         }
         syncSequence("listings");
         log.info("listings 시드 {}건", fixtures.get().size());
+    }
+
+    private void seedDorms() {
+        if (!isEmpty("dorms")) {
+            return;
+        }
+        Optional<List<DormFixture>> fixtures = read("dorms.json", new TypeReference<>() { });
+        if (fixtures.isEmpty()) {
+            return;
+        }
+        for (DormFixture d : fixtures.get()) {
+            require(d.id() != null && d.name() != null, "dorms.json: id·name 은 필수예요.");
+            List<Map<String, Object>> building = jdbc.queryForList("select lat, lng from buildings where id = ?", d.id());
+            require(!building.isEmpty(), "dorms.json: 기숙사 " + d.id() + " 와 같은 id 의 건물이 buildings 에 없어요.");
+            jdbc.update("insert into dorms (id, name, lat, lng) values (?, ?, ?, ?)",
+                    d.id(), d.name(), building.get(0).get("lat"), building.get(0).get("lng"));
+            for (DormRoomFixture r : d.roomTypes() == null ? List.<DormRoomFixture>of() : d.roomTypes()) {
+                require(r.id() != null && r.name() != null && r.capacity() != null && r.semesterFee() != null
+                                && r.semesterMonths() != null && r.semesterMonths() > 0 && r.mealIncluded() != null,
+                        "dorms.json: 호실 id·name·capacity·semesterFee·semesterMonths(1 이상)·mealIncluded 는 필수예요. (기숙사 " + d.id() + ")");
+                jdbc.update("""
+                                insert into dorm_room_types (id, dorm_id, name, capacity, semester_fee, semester_months,
+                                                             meal_included, floorplan_id)
+                                values (?, ?, ?, ?, ?, ?, ?, ?)""",
+                        r.id(), d.id(), r.name(), r.capacity(), r.semesterFee(), r.semesterMonths(), r.mealIncluded(),
+                        r.floorplanId());
+            }
+        }
+        log.info("dorms 시드 {}건", fixtures.get().size());
     }
 
     private void insertOrdered(String sql, Long ownerId, List<String> values) {

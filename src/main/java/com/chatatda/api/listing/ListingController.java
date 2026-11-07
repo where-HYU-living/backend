@@ -1,6 +1,8 @@
 package com.chatatda.api.listing;
 
 import com.chatatda.api.common.ApiException;
+import com.chatatda.api.compare.AlternativeService;
+import com.chatatda.api.compare.AlternativeService.AlternativesDto;
 import com.chatatda.api.common.CurrentUser;
 import com.chatatda.api.common.ErrorCode;
 import com.chatatda.api.common.PageResponse;
@@ -25,9 +27,11 @@ public class ListingController {
     private static final int MAX_NEARBY_RADIUS = 500;
 
     private final ListingService service;
+    private final AlternativeService alternatives;
 
-    public ListingController(ListingService service) {
+    public ListingController(ListingService service, AlternativeService alternatives) {
         this.service = service;
+        this.alternatives = alternatives;
     }
 
     @GetMapping
@@ -48,7 +52,7 @@ public class ListingController {
         if (size < 1) {
             throw invalid("size", "1 이상이어야 해요.");
         }
-        ListingQuery query = new ListingQuery(parseBbox(bbox), maxRent, maxDeposit, maxMgmtFee, grade, maxWalkMin,
+        ListingQuery query = new ListingQuery(ListingQuery.Bbox.parse(bbox), maxRent, maxDeposit, maxMgmtFee, grade, maxWalkMin,
                 roomType, buildingId, page, Math.min(size, MAX_PAGE_SIZE));
         return service.list(query, userId);
     }
@@ -72,24 +76,10 @@ public class ListingController {
         return service.priceCheck(id, userId);
     }
 
-    private static ListingQuery.Bbox parseBbox(String bbox) {
-        if (bbox == null || bbox.isBlank()) {
-            return null;
-        }
-        String[] parts = bbox.split(",");
-        if (parts.length != 4) {
-            throw invalid("bbox", "minLng,minLat,maxLng,maxLat 형식이어야 해요.");
-        }
-        try {
-            ListingQuery.Bbox b = new ListingQuery.Bbox(Double.parseDouble(parts[0].trim()), Double.parseDouble(parts[1].trim()),
-                    Double.parseDouble(parts[2].trim()), Double.parseDouble(parts[3].trim()));
-            if (b.minLng() > b.maxLng() || b.minLat() > b.maxLat()) {
-                throw invalid("bbox", "최솟값이 최댓값보다 클 수 없어요.");
-            }
-            return b;
-        } catch (NumberFormatException e) {
-            throw invalid("bbox", "숫자 4개여야 해요.");
-        }
+    @GetMapping("/{id}/alternatives")
+    public AlternativesDto alternatives(@PathVariable long id, @RequestParam(required = false) Long buildingId,
+                                        @CurrentUser(required = false) Long userId) {
+        return alternatives.forListing(id, buildingId, userId);
     }
 
     private static ApiException invalid(String field, String reason) {

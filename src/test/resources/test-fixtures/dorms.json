@@ -1,0 +1,10 @@
+[
+  {
+    "id": 107, "name": "테스트 기숙사",
+    "roomTypes": [
+      { "id": 1071, "name": "3인실 (여)", "capacity": 3, "semesterFee": 1001000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null },
+      { "id": 1072, "name": "2인실 (남)", "capacity": 2, "semesterFee": 1137000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null },
+      { "id": 1073, "name": "2인실 고급 (남)", "capacity": 2, "semesterFee": 1380000, "semesterMonths": 4, "mealIncluded": true, "floorplanId": 9 }
+    ]
+  }
+]

@@ -37,6 +37,8 @@ public abstract class IntegrationTest {
         registry.add("app.bus-stops.location", () -> "classpath:test-fixtures/bus-stops.json");
         registry.add("pricing.conversion-rate", () -> "0.06");
         registry.add("pricing.baseline-mgmt-fee", () -> "71000");
+        registry.add("app.housing-ingest.request-interval-ms", () -> "0");
+        registry.add("app.housing-ingest.labels-location", () -> "classpath:soco/floorplan-labels.json");
     }
 
     @Autowired
@@ -58,6 +60,9 @@ public abstract class IntegrationTest {
     protected FakeAddressPort addressPort;
 
     @Autowired
+    protected FakeSocoClient socoClient;
+
+    @Autowired
     protected JwtProvider jwtProvider;
 
     @Autowired
@@ -76,9 +81,10 @@ public abstract class IntegrationTest {
         walkPort.reset();
         placePort.reset();
         addressPort.reset();
+        socoClient.reset();
         walkService.clearCaches();
         nearbyService.clearCaches();
-        jdbc.execute("truncate table users, email_codes, walk_cache restart identity cascade");
+        jdbc.execute("truncate table users, email_codes, walk_cache, housing restart identity cascade");
     }
 
     protected String bearer(long userId) {

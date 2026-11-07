@@ -38,4 +38,10 @@ public class TestSupportConfig {
     FakeAddressPort fakeAddressPort() {
         return new FakeAddressPort();
     }
+
+    @Bean
+    @Primary
+    FakeSocoClient fakeSocoClient() {
+        return new FakeSocoClient();
+    }
 }

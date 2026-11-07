@@ -4,4 +4,7 @@
 - `departments.json` — 학부 학과 61개와 그 학과의 **행정팀(사무실) 건물**(`defaultBuildingIds`). 수업·연구실 건물과 다를 수 있다.
 - 두 파일은 손으로 고치지 말고 프론트 저장소에서 다시 만든다: `BACKEND_DIR=<이 저장소> node scripts/build-departments.mjs` (원본은 campus-data `campus/departments.json`, 출처·확신도 포함).
 - 시드는 테이블이 비어 있을 때만 들어간다. 이미 시드된 DB 에서 목록을 바꾸려면 `departments`, `department_buildings`, `buildings` 를 비우고 다시 띄우면 된다 (사용자 프로필이 참조 중이면 먼저 정리).
+- `dorms.json` — 학부 재학생 기숙사와 호실 유형. id 는 그 기숙사 건물의 건물 번호(801 …). 좌표는 `buildings` 에서 가져온다. **학기마다 손으로 갱신**: 학생생활관 홈페이지(dormitory.hanyang.ac.kr) → 학부 재학생 모집요강(한양이북 PDF) 의 "모집일반" 표. 현재 값은 2026학년도 2학기 모집요강 4·16쪽(학기 116일 → `semesterMonths` 4, 식비 미포함)
+- `floorplan-labels.json` — 청년안심주택 평면도 이미지(soco 단지 상세) 지문(sha256) → 주택형 이름·전용면적. 서버가 이미지를 수집할 때 이 표에 없는 지문은 경고 로그로 알려 준다(새 평면도·바뀐 평면도 → 이미지를 보고 이 표에 추가)
+- 청년안심주택 단지·주택형·공고는 파일이 아니라 서버가 soco 에서 매일 수집한다 (`HOUSING_INGEST_ENABLED=true`)
 - 통합 테스트는 `classpath:test-fixtures/` 를 쓰므로 이 파일들과 무관하다.
