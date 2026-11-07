@@ -67,7 +67,7 @@ public class AlternativeService {
             housingOptions.add(new Option(u.housingId(), u.housingName() + " " + u.unitName(), u.convertedRent(), u.lat(), u.lng()));
         }
         List<Option> dormOptions = new ArrayList<>();
-        for (DormDto d : dorms.list(null)) {
+        for (DormDto d : dorms.list()) {
             for (RoomTypeDto r : d.roomTypes()) {
                 dormOptions.add(new Option(d.id(), d.name() + " " + r.name(), r.monthlyCost(), d.lat(), d.lng()));
             }

@@ -19,7 +19,7 @@ public final class TransferDtos {
     }
 
     public record TransferRequest(
-            @NotBlank @Size(max = 50) String title,
+            @NotBlank @Size(min = 2, max = 40) String title,
             @NotBlank @Size(max = 300) String address,
             @NotBlank @Size(max = 50) String dong,
             @NotNull Double lat,

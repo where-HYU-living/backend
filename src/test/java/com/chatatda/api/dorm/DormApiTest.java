@@ -8,27 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.chatatda.api.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 class DormApiTest extends IntegrationTest {
-
-    @Autowired
-    JdbcTemplate jdbc;
-
-    @Test
-    void favoritedFlag_listAndDetail() throws Exception {
-        long userId = jdbc.queryForObject(
-                "insert into users (email, nickname, created_at) values ('d@hanyang.ac.kr', 'd', now()) returning id", Long.class);
-        jdbc.update("insert into favorites (user_id, type, target_id, created_at) values (?, 'DORM', 107, now())", userId);
-
-        mvc.perform(get("/api/v1/dorms").header("Authorization", bearer(userId)))
-                .andExpect(jsonPath("$[0].favorited").value(true));
-        mvc.perform(get("/api/v1/dorms/107").header("Authorization", bearer(userId)))
-                .andExpect(jsonPath("$.favorited").value(true));
-        mvc.perform(get("/api/v1/dorms"))
-                .andExpect(jsonPath("$[0].favorited").value(false));
-    }
 
     @Test
     void dorms_monthlyCost() throws Exception {

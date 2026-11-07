@@ -86,7 +86,7 @@ public class TransferService {
 
     @Transactional
     public TransferDetail create(long userId, TransferRequest request) {
-        checkPhotos(request);
+        checkRequest(request);
         Transfer t = new Transfer(userId, clock.instant());
         t.apply(request, clock.instant());
         price(t);
@@ -96,7 +96,7 @@ public class TransferService {
     @Transactional
     public TransferDetail update(long userId, long id, TransferRequest request) {
         Transfer t = loadOwned(userId, id);
-        checkPhotos(request);
+        checkRequest(request);
         t.apply(request, clock.instant());
         price(t);
         return detailOf(t, userId);
@@ -139,7 +139,12 @@ public class TransferService {
                 t.getRemainingMonths(), t.getAvailableFrom(), t.getStatus(), nickname);
     }
 
-    private void checkPhotos(TransferRequest request) {
+    private void checkRequest(TransferRequest request) {
+        int titleLength = request.title().trim().length();
+        if (titleLength < 2 || titleLength > 40) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, "요청 값이 올바르지 않아요.",
+                    Map.of("title", "앞뒤 공백을 빼고 2~40자여야 해요."));
+        }
         if (request.photoUrls() == null) {
             return;
         }

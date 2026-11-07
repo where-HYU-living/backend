@@ -115,7 +115,13 @@ class TransferApiTest extends IntegrationTest {
         create(author, body(null, "행당동", 500_000, 6, "[]"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details.title").exists());
-        create(author, body("a".repeat(51), "행당동", 500_000, 6, "[]"))
+        create(author, body("a".repeat(41), "행당동", 500_000, 6, "[]"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details.title").exists());
+        create(author, body("  a  ", "행당동", 500_000, 6, "[]"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details.title").exists());
+        create(author, body("a", "행당동", 500_000, 6, "[]"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details.title").exists());
     }

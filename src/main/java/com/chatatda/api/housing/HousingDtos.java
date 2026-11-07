@@ -12,8 +12,7 @@ public final class HousingDtos {
     }
 
     public record HousingSummary(long id, String name, String address, double lat, double lng, boolean recruiting,
-                                 EventDto nextEvent, boolean subscribed, boolean favorited, Long minConvertedRent,
-                                 Integer walkMin) {
+                                 EventDto nextEvent, boolean subscribed, Long minConvertedRent, Integer walkMin) {
     }
 
     public record UnitTypeDto(long id, String name, Double exclusiveAreaM2, long deposit, long rent, Long mgmtFee,
@@ -21,8 +20,7 @@ public final class HousingDtos {
     }
 
     public record HousingDetail(long id, String name, String address, double lat, double lng, boolean recruiting,
-                                EventDto nextEvent, boolean subscribed, boolean favorited, Long minConvertedRent,
-                                Integer walkMin,
+                                EventDto nextEvent, boolean subscribed, Long minConvertedRent, Integer walkMin,
                                 List<UnitTypeDto> unitTypes, String floorLayoutImageUrl, String contact) {
     }
 
