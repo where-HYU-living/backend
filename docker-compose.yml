@@ -38,6 +38,9 @@ services:
       INGEST_ENABLED: "false"
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-574974997728-79vkqgmakk1f2frije5lp6teeie2b5qe.apps.googleusercontent.com}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,https://where-hyu-living.xyz,https://where-hyu-living.vercel.app}
+      MOLIT_KEY: ${MOLIT_KEY:-}
+      TMAP_KEY: ${TMAP_KEY:-}
+      KAKAO_REST_KEY: ${KAKAO_REST_KEY:-}
 
 volumes:
   chatatda-db-data:
