@@ -63,5 +63,12 @@ pricing:
   default-contract-months: 24
   baseline-mgmt-fee: 71000
 
+world:
+  # 공유 월드 1개 (인메모리, 서버 1대 전제). 넘치면 WORLD_FULL
+  max-players: 30
+  tick-ms: 100
+  idle-timeout: 60s
+  invite-ttl: 24h
+
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
