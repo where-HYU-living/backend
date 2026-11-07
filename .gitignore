@@ -8,3 +8,4 @@ application-local.yml
 application-local.yaml
 .env
 *.pem
+uploads/

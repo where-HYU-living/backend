@@ -1,0 +1,5 @@
+[
+  {"authorNickname": "졸업반선배", "title": "사근동 분리형 원룸 양도해요 (내년 2월까지)", "address": "서울 성동구 사근동 189", "dong": "사근동", "lat": 37.5608496, "lng": 127.0484428, "deposit": 10000000, "rent": 480000, "mgmtFee": 60000, "areaM2": 18, "floor": 3, "roomType": "SEPARATED", "remainingMonths": 4, "availableFrom": "2026-12-20", "description": "졸업하면서 나가요. 남향이라 낮에 밝고, 학교 후문까지 걸어서 7분 정도예요. 집주인 동의 받았어요."},
+  {"authorNickname": "교환학생가요", "title": "교환학생 가서 급하게 넘겨요", "address": "서울 성동구 사근동 205", "dong": "사근동", "lat": 37.5613438, "lng": 127.0476882, "deposit": 5000000, "rent": 800000, "mgmtFee": 80000, "areaM2": 20, "floor": 5, "roomType": "OPEN", "remainingMonths": 10, "availableFrom": "2027-01-05", "description": "풀옵션 원룸이에요. 1월 초 출국이라 그 전에 들어오실 분 찾아요."},
+  {"authorNickname": "휴학생", "title": "행당동 1.5룸 양도 (휴학)", "address": "서울 성동구 행당동 250", "dong": "행당동", "lat": 37.559941, "lng": 127.0362016, "deposit": 20000000, "rent": 780000, "mgmtFee": 90000, "areaM2": 23, "floor": 2, "roomType": "ONE_HALF", "remainingMonths": 14, "availableFrom": "2027-02-01", "description": "휴학하고 본가 가요. 침실과 거실이 나뉘어 있어서 공부방 따로 쓰기 좋아요."}
+]

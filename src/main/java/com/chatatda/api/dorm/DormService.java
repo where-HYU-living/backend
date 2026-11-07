@@ -2,12 +2,15 @@ package com.chatatda.api.dorm;
 
 import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
+import com.chatatda.api.favorite.FavoriteRepository;
+import com.chatatda.api.favorite.FavoriteType;
 import com.chatatda.api.geo.WalkService;
 import com.chatatda.api.user.ProfileService;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,22 +26,26 @@ public class DormService {
         }
     }
 
-    public record DormDto(long id, String name, double lat, double lng, List<RoomTypeDto> roomTypes, Integer walkMin) {
+    public record DormDto(long id, String name, double lat, double lng, List<RoomTypeDto> roomTypes, Integer walkMin,
+                          boolean favorited) {
     }
 
     private final JdbcTemplate jdbc;
     private final WalkService walk;
     private final ProfileService profiles;
+    private final FavoriteRepository favorites;
 
-    public DormService(JdbcTemplate jdbc, WalkService walk, ProfileService profiles) {
+    public DormService(JdbcTemplate jdbc, WalkService walk, ProfileService profiles, FavoriteRepository favorites) {
         this.jdbc = jdbc;
         this.walk = walk;
         this.profiles = profiles;
+        this.favorites = favorites;
     }
 
     @Transactional(readOnly = true)
-    public List<DormDto> list() {
-        return load(null);
+    public List<DormDto> list(Long userIdOrNull) {
+        Set<Long> favorited = favoritedIds(userIdOrNull);
+        return load(null).stream().map(d -> withFavorited(d, favorited.contains(d.id()))).toList();
     }
 
     @Transactional(readOnly = true)
@@ -47,7 +54,16 @@ public class DormService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "기숙사를 찾을 수 없어요."));
         Long effective = buildingId != null ? buildingId
                 : userIdOrNull == null ? null : profiles.firstBuildingId(userIdOrNull).orElse(null);
-        return new DormDto(d.id(), d.name(), d.lat(), d.lng(), d.roomTypes(), walk.minutesOrNull(d.lat(), d.lng(), effective));
+        return new DormDto(d.id(), d.name(), d.lat(), d.lng(), d.roomTypes(), walk.minutesOrNull(d.lat(), d.lng(), effective),
+                favoritedIds(userIdOrNull).contains(d.id()));
+    }
+
+    private Set<Long> favoritedIds(Long userIdOrNull) {
+        return userIdOrNull == null ? Set.of() : favorites.findTargetIds(userIdOrNull, FavoriteType.DORM);
+    }
+
+    private static DormDto withFavorited(DormDto d, boolean favorited) {
+        return new DormDto(d.id(), d.name(), d.lat(), d.lng(), d.roomTypes(), d.walkMin(), favorited);
     }
 
     private List<DormDto> load(Long id) {
@@ -62,7 +78,8 @@ public class DormService {
             long dormId = rs.getLong("id");
             DormDto dorm = dorms.get(dormId);
             if (dorm == null) {
-                dorm = new DormDto(dormId, rs.getString("name"), rs.getDouble("lat"), rs.getDouble("lng"), new ArrayList<>(), null);
+                dorm = new DormDto(dormId, rs.getString("name"), rs.getDouble("lat"), rs.getDouble("lng"), new ArrayList<>(), null,
+                        false);
                 dorms.put(dormId, dorm);
             }
             Object roomId = rs.getObject("room_id");

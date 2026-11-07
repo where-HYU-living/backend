@@ -159,6 +159,19 @@ class HousingApiTest extends IntegrationTest {
     }
 
     @Test
+    void favoritedFlag_listAndDetail() throws Exception {
+        jdbc.update("insert into favorites (user_id, type, target_id, created_at) values (?, 'HOUSING', ?, now())", userId, labom);
+
+        mvc.perform(get("/api/v1/housing").header("Authorization", bearer(userId)))
+                .andExpect(jsonPath("$[?(@.id == " + labom + ")].favorited", contains(true)))
+                .andExpect(jsonPath("$[?(@.id == " + cheongajin + ")].favorited", contains(false)));
+        mvc.perform(get("/api/v1/housing/" + labom).header("Authorization", bearer(userId)))
+                .andExpect(jsonPath("$.favorited").value(true));
+        mvc.perform(get("/api/v1/housing/" + labom))
+                .andExpect(jsonPath("$.favorited").value(false));
+    }
+
+    @Test
     void subscribe_guest401() throws Exception {
         mvc.perform(post("/api/v1/housing/" + labom + "/subscribe")).andExpect(status().isUnauthorized());
     }

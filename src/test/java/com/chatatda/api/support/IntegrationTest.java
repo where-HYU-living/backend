@@ -39,6 +39,7 @@ public abstract class IntegrationTest {
         registry.add("pricing.baseline-mgmt-fee", () -> "71000");
         registry.add("app.housing-ingest.request-interval-ms", () -> "0");
         registry.add("app.housing-ingest.labels-location", () -> "classpath:soco/floorplan-labels.json");
+        registry.add("app.upload.dir", () -> "build/test-uploads");
     }
 
     @Autowired

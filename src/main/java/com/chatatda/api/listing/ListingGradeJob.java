@@ -1,5 +1,6 @@
 package com.chatatda.api.listing;
 
+import com.chatatda.api.transfer.TransferService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -13,14 +14,17 @@ public class ListingGradeJob {
     private static final Logger log = LoggerFactory.getLogger(ListingGradeJob.class);
 
     private final ListingService listings;
+    private final TransferService transfers;
 
-    public ListingGradeJob(ListingService listings) {
+    public ListingGradeJob(ListingService listings, TransferService transfers) {
         this.listings = listings;
+        this.transfers = transfers;
     }
 
     @Order(2)
     @EventListener(ApplicationReadyEvent.class)
     public void onReady() {
         log.info("매물 판정 다시 계산: {}건", listings.recomputeAll());
+        log.info("양도 글 판정 다시 계산: {}건", transfers.recomputeAll());
     }
 }

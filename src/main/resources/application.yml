@@ -11,6 +11,10 @@ spring:
       ddl-auto: validate
   profiles:
     include: local
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
 
@@ -32,6 +36,11 @@ app:
     months: 12
   bus-stops:
     location: classpath:geo/bus-stops.json
+  upload:
+    # 양도 글 사진. 배포에서 디스크가 지워지는 환경이면 외부 저장소로 바꿀 것 (Task 16)
+    dir: ${UPLOAD_DIR:uploads}
+    # 응답 주소 앞부분 (예 https://api.example.com). 비우면 요청 주소로 만든다
+    public-base-url: ${UPLOAD_PUBLIC_BASE_URL:}
   housing-ingest:
     enabled: ${HOUSING_INGEST_ENABLED:false}
     districts: 성동구,동대문구

@@ -2,6 +2,8 @@ package com.chatatda.api.housing;
 
 import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
+import com.chatatda.api.favorite.FavoriteRepository;
+import com.chatatda.api.favorite.FavoriteType;
 import com.chatatda.api.geo.WalkService;
 import com.chatatda.api.housing.HousingDtos.AnnouncementDto;
 import com.chatatda.api.housing.HousingDtos.EventDto;
@@ -55,16 +57,18 @@ public class HousingService {
     private final JdbcTemplate jdbc;
     private final WalkService walk;
     private final ProfileService profiles;
+    private final FavoriteRepository favorites;
     private final AnnouncementStatusPolicy statusPolicy;
     private final PriceCalculator calculator;
     private final PricingProperties properties;
     private final Clock clock;
 
-    public HousingService(JdbcTemplate jdbc, WalkService walk, ProfileService profiles,
+    public HousingService(JdbcTemplate jdbc, WalkService walk, ProfileService profiles, FavoriteRepository favorites,
                           AnnouncementStatusPolicy statusPolicy, PricingProperties properties, Clock clock) {
         this.jdbc = jdbc;
         this.walk = walk;
         this.profiles = profiles;
+        this.favorites = favorites;
         this.statusPolicy = statusPolicy;
         this.calculator = new PriceCalculator(properties);
         this.properties = properties;
@@ -77,6 +81,7 @@ public class HousingService {
         Map<Long, List<UnitRow>> units = unitsByHousing();
         Map<Long, List<AnnouncementRow>> anns = announcementsByHousing(null);
         Set<Long> subscribed = subscribedIds(userIdOrNull);
+        Set<Long> favorited = favoritedIds(userIdOrNull);
         LocalDate today = LocalDate.now(clock);
         List<HousingSummary> result = new ArrayList<>();
         for (HousingRow h : housingRows(null)) {
@@ -92,7 +97,8 @@ public class HousingService {
             if (q.maxWalkMin() != null && buildingId != null && (walkMin == null || walkMin > q.maxWalkMin())) {
                 continue;
             }
-            result.add(summary(h, hu, anns.getOrDefault(h.id(), List.of()), subscribed.contains(h.id()), walkMin, today));
+            result.add(summary(h, hu, anns.getOrDefault(h.id(), List.of()), subscribed.contains(h.id()),
+                    favorited.contains(h.id()), walkMin, today));
         }
         return result;
     }
@@ -104,11 +110,12 @@ public class HousingService {
         List<UnitRow> units = unitsByHousing().getOrDefault(id, List.of());
         Integer walkMin = walk.minutesOrNull(h.lat(), h.lng(), effectiveBuilding(buildingId, userIdOrNull));
         HousingSummary s = summary(h, units, announcementsByHousing(id).getOrDefault(id, List.of()),
-                subscribedIds(userIdOrNull).contains(id), walkMin, LocalDate.now(clock));
+                subscribedIds(userIdOrNull).contains(id), favoritedIds(userIdOrNull).contains(id), walkMin,
+                LocalDate.now(clock));
         List<UnitTypeDto> unitDtos = units.stream().map(u -> new UnitTypeDto(u.id(), u.name(), u.area(), u.deposit(),
                 u.rent(), u.mgmtFee(), converted(u), u.floorplanId())).toList();
         return new HousingDetail(s.id(), s.name(), s.address(), s.lat(), s.lng(), s.recruiting(), s.nextEvent(),
-                s.subscribed(), s.minConvertedRent(), s.walkMin(), unitDtos, h.floorLayoutImageUrl(), h.contact());
+                s.subscribed(), s.favorited(), s.minConvertedRent(), s.walkMin(), unitDtos, h.floorLayoutImageUrl(), h.contact());
     }
 
     @Transactional(readOnly = true)
@@ -174,7 +181,7 @@ public class HousingService {
     }
 
     private HousingSummary summary(HousingRow h, List<UnitRow> units, List<AnnouncementRow> anns, boolean subscribed,
-                                   Integer walkMin, LocalDate today) {
+                                   boolean favorited, Integer walkMin, LocalDate today) {
         boolean recruiting = anns.stream().map(a -> statusOf(a, today))
                 .anyMatch(s -> s == AnnouncementStatus.OPEN || s == AnnouncementStatus.ADDITIONAL);
         EventDto next = anns.stream().flatMap(a -> a.events().stream())
@@ -183,7 +190,7 @@ public class HousingService {
                 .orElse(null);
         Long minConverted = units.stream().map(this::converted).min(Long::compare).orElse(null);
         return new HousingSummary(h.id(), h.name(), h.address(), h.lat(), h.lng(), recruiting, next, subscribed,
-                minConverted, walkMin);
+                favorited, minConverted, walkMin);
     }
 
     private AnnouncementStatus statusOf(AnnouncementRow a, LocalDate today) {
@@ -201,6 +208,10 @@ public class HousingService {
             return buildingId;
         }
         return userIdOrNull == null ? null : profiles.firstBuildingId(userIdOrNull).orElse(null);
+    }
+
+    private Set<Long> favoritedIds(Long userIdOrNull) {
+        return userIdOrNull == null ? Set.of() : favorites.findTargetIds(userIdOrNull, FavoriteType.HOUSING);
     }
 
     private Set<Long> subscribedIds(Long userIdOrNull) {

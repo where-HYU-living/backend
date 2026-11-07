@@ -11,6 +11,8 @@ import com.chatatda.api.listing.ListingDtos.ListingSummary;
 import com.chatatda.api.listing.ListingRepository;
 import com.chatatda.api.listing.ListingService;
 import com.chatatda.api.pricing.Grade;
+import com.chatatda.api.transfer.TransferDtos.TransferSummary;
+import com.chatatda.api.transfer.TransferService;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,15 +36,17 @@ public class FavoriteService {
     private final ListingService listingService;
     private final HousingService housing;
     private final DormService dorms;
+    private final TransferService transfers;
     private final Clock clock;
 
     public FavoriteService(FavoriteRepository favorites, ListingRepository listings, ListingService listingService,
-                           HousingService housing, DormService dorms, Clock clock) {
+                           HousingService housing, DormService dorms, TransferService transfers, Clock clock) {
         this.favorites = favorites;
         this.listings = listings;
         this.listingService = listingService;
         this.housing = housing;
         this.dorms = dorms;
+        this.transfers = transfers;
         this.clock = clock;
     }
 
@@ -98,7 +102,10 @@ public class FavoriteService {
                 Long cheapest = d.roomTypes().stream().map(RoomTypeDto::monthlyCost).min(Long::compare).orElse(null);
                 yield new Target(d.name(), d.lat(), d.lng(), cheapest, null, d.walkMin());
             }
-            case TRANSFER -> throw notFound("양도 글");
+            case TRANSFER -> {
+                TransferSummary t = transfers.summaryOf(targetId, userId);
+                yield new Target(t.title(), t.lat(), t.lng(), t.convertedRent(), t.grade(), t.walkMin());
+            }
         };
     }
 

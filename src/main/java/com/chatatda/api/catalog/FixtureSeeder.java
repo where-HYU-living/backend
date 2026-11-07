@@ -7,7 +7,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +53,12 @@ public class FixtureSeeder {
     record DormFixture(Long id, String name, List<DormRoomFixture> roomTypes) {
     }
 
+    record TransferFixture(String authorNickname, String title, String address, String dong, Double lat, Double lng,
+                           Long deposit, Long rent, Long mgmtFee, Double areaM2, Integer floor, RoomType roomType,
+                           Integer remainingMonths, LocalDate availableFrom, String description,
+                           List<String> photos) {
+    }
+
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
     private final ResourceLoader resourceLoader;
@@ -88,6 +96,7 @@ public class FixtureSeeder {
             seedDepartments();
             seedListings();
             seedDorms();
+            seedTransfers();
         });
     }
 
@@ -196,6 +205,34 @@ public class FixtureSeeder {
             }
         }
         log.info("dorms 시드 {}건", fixtures.get().size());
+    }
+
+    private void seedTransfers() {
+        if (!isEmpty("transfers")) {
+            return;
+        }
+        Optional<List<TransferFixture>> fixtures = read("transfers.json", new TypeReference<>() { });
+        if (fixtures.isEmpty()) {
+            return;
+        }
+        Timestamp now = Timestamp.from(clock.instant());
+        for (TransferFixture f : fixtures.get()) {
+            require(f.authorNickname() != null && f.title() != null && f.address() != null && f.dong() != null
+                            && f.lat() != null && f.lng() != null && f.deposit() != null && f.rent() != null
+                            && f.areaM2() != null && f.roomType() != null && f.remainingMonths() != null,
+                    "transfers.json: authorNickname·title·address·dong·lat·lng·deposit·rent·areaM2·roomType·remainingMonths 는 필수예요.");
+            long authorId = demoUser(f.authorNickname());
+            Long id = jdbc.queryForObject("""
+                            insert into transfers (author_id, title, address, dong, lat, lng, deposit, rent, mgmt_fee, area_m2,
+                                                   floor, room_type, remaining_months, available_from, description, status,
+                                                   created_at, updated_at)
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?) returning id""", Long.class,
+                    authorId, f.title(), f.address(), f.dong(), f.lat(), f.lng(), f.deposit(), f.rent(), f.mgmtFee(),
+                    f.areaM2(), f.floor(), f.roomType().name(), f.remainingMonths(), f.availableFrom(), f.description(),
+                    now, now);
+            insertOrdered("insert into transfer_photos (transfer_id, position, url) values (?, ?, ?)", id, f.photos());
+        }
+        log.info("transfers 시드 {}건", fixtures.get().size());
     }
 
     private void insertOrdered(String sql, Long ownerId, List<String> values) {
