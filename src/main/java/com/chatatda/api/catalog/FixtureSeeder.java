@@ -53,6 +53,13 @@ public class FixtureSeeder {
     record DormFixture(Long id, String name, List<DormRoomFixture> roomTypes) {
     }
 
+    record ReviewScoresFixture(Integer noise, Integer light, Integer bugs, Integer landlord, Integer depositReturn) {
+    }
+
+    record ReviewFixture(String authorNickname, String targetType, Long targetId, Integer rating,
+                         ReviewScoresFixture scores, String text) {
+    }
+
     record TransferFixture(String authorNickname, String title, String address, String dong, Double lat, Double lng,
                            Long deposit, Long rent, Long mgmtFee, Double areaM2, Integer floor, RoomType roomType,
                            Integer remainingMonths, LocalDate availableFrom, String description,
@@ -97,6 +104,7 @@ public class FixtureSeeder {
             seedListings();
             seedDorms();
             seedTransfers();
+            seedReviews();
         });
     }
 
@@ -233,6 +241,31 @@ public class FixtureSeeder {
             insertOrdered("insert into transfer_photos (transfer_id, position, url) values (?, ?, ?)", id, f.photos());
         }
         log.info("transfers 시드 {}건", fixtures.get().size());
+    }
+
+    private void seedReviews() {
+        if (!isEmpty("reviews")) {
+            return;
+        }
+        Optional<List<ReviewFixture>> fixtures = read("reviews.json", new TypeReference<>() { });
+        if (fixtures.isEmpty()) {
+            return;
+        }
+        Timestamp now = Timestamp.from(clock.instant());
+        for (ReviewFixture f : fixtures.get()) {
+            ReviewScoresFixture s = f.scores();
+            require(f.authorNickname() != null && f.targetType() != null && f.targetId() != null && f.rating() != null
+                            && s != null && s.noise() != null && s.light() != null && s.bugs() != null
+                            && s.landlord() != null && s.depositReturn() != null,
+                    "reviews.json: authorNickname·targetType·targetId·rating·scores(5개) 는 필수예요.");
+            jdbc.update("""
+                            insert into reviews (author_id, target_type, target_id, rating, noise, light, bugs, landlord,
+                                                 deposit_return, text, created_at)
+                            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    demoUser(f.authorNickname()), f.targetType(), f.targetId(), f.rating(), s.noise(), s.light(), s.bugs(),
+                    s.landlord(), s.depositReturn(), f.text(), now);
+        }
+        log.info("reviews 시드 {}건", fixtures.get().size());
     }
 
     private void insertOrdered(String sql, Long ownerId, List<String> values) {
