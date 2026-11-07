@@ -1,33 +1,86 @@
 [
   {
-    "id": 801, "name": "제1학생생활관",
+    "id": 801,
+    "name": "제1학생생활관",
     "roomTypes": [
-      { "id": 8011, "name": "3인실 (여)", "capacity": 3, "semesterFee": 1001000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null }
+      {
+        "id": 8011,
+        "name": "3인실 (여)",
+        "capacity": 3,
+        "semesterFee": 1001000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 201
+      }
     ]
   },
   {
-    "id": 804, "name": "제2학생생활관·한양테크노숙사",
+    "id": 804,
+    "name": "제2학생생활관·한양테크노숙사",
     "roomTypes": [
-      { "id": 8041, "name": "제2학생생활관 2인실 (남)", "capacity": 2, "semesterFee": 1137000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null },
-      { "id": 8042, "name": "한양테크노숙사 2인실 (남)", "capacity": 2, "semesterFee": 1380000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null }
+      {
+        "id": 8041,
+        "name": "제2학생생활관 2인실 (남)",
+        "capacity": 2,
+        "semesterFee": 1137000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 202
+      },
+      {
+        "id": 8042,
+        "name": "한양테크노숙사 2인실 (남)",
+        "capacity": 2,
+        "semesterFee": 1380000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 203
+      }
     ]
   },
   {
-    "id": 805, "name": "개나리관",
+    "id": 805,
+    "name": "개나리관",
     "roomTypes": [
-      { "id": 8051, "name": "2인실 (여)", "capacity": 2, "semesterFee": 1492000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null }
+      {
+        "id": 8051,
+        "name": "2인실 (여)",
+        "capacity": 2,
+        "semesterFee": 1492000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 204
+      }
     ]
   },
   {
-    "id": 806, "name": "한누리관",
+    "id": 806,
+    "name": "한누리관",
     "roomTypes": [
-      { "id": 8061, "name": "2인실 (여)", "capacity": 2, "semesterFee": 1492000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null }
+      {
+        "id": 8061,
+        "name": "2인실 (여)",
+        "capacity": 2,
+        "semesterFee": 1492000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 205
+      }
     ]
   },
   {
-    "id": 810, "name": "제7학생생활관",
+    "id": 810,
+    "name": "제7학생생활관",
     "roomTypes": [
-      { "id": 8101, "name": "2인실 (남)", "capacity": 2, "semesterFee": 1639000, "semesterMonths": 4, "mealIncluded": false, "floorplanId": null }
+      {
+        "id": 8101,
+        "name": "2인실 (남)",
+        "capacity": 2,
+        "semesterFee": 1639000,
+        "semesterMonths": 4,
+        "mealIncluded": false,
+        "floorplanId": 206
+      }
     ]
   }
 ]

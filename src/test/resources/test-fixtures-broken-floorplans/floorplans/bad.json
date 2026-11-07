@@ -1,0 +1,6 @@
+{ "id": 50, "name": "망가진 도면", "areaM2": 10, "ceilingHeight": 2.4,
+  "walls": [ { "from": [0, 0], "to": [2, 0], "thickness": 0.2 } ],
+  "openings": [ { "type": "door", "wall": 3, "offset": 0, "width": 0.9, "height": 2.1, "sill": 0 },
+                { "type": "window", "wall": 0, "offset": 1.5, "width": 1.0, "height": 1.2, "sill": 0.9 } ],
+  "rooms": [ { "name": "방", "polygon": [[0, 0], [2, 0]] } ],
+  "entrance": [1, 0], "glbUrl": null }
