@@ -102,12 +102,19 @@ class FloorPlanSeederTest extends IntegrationTest {
         assertThat(housing).isEqualTo(20);
         assertThat(listing).isEqualTo(7);
 
+        // 데모 매물 중 평면도가 연결된 것은 정확히 7건이고, 101~107 을 하나씩 쓰며, 실제로 있는 평면도다 (나머지는 null)
         var listings = objectMapper.readTree(resourceLoader.getResource("classpath:fixtures/listings.json").getInputStream());
-        assertThat(listings).hasSize(7);
+        var linked = new java.util.TreeSet<Long>();
         for (var l : listings) {
-            assertThat(ids).as("매물 %s 의 평면도", l.get("id")).contains(l.get("floorplanId").asLong());
-            assertThat(l.get("floorplanId").asLong()).isBetween(101L, 199L);
+            if (l.path("floorplanId").isNull()) {
+                continue;
+            }
+            long fp = l.get("floorplanId").asLong();
+            assertThat(ids).as("매물 %s 의 평면도", l.get("id")).contains(fp);
+            assertThat(fp).isBetween(101L, 199L);
+            assertThat(linked.add(fp)).as("매물 평면도 %s 중복", fp).isTrue();
         }
+        assertThat(linked).containsExactly(101L, 102L, 103L, 104L, 105L, 106L, 107L);
 
         // 기숙사 호실 유형 6종은 201~299 구간의 평면도를 하나씩 가리키고, 그 평면도가 실제로 적재돼 있어야 한다
         var dorms = objectMapper.readTree(resourceLoader.getResource("classpath:fixtures/dorms.json").getInputStream());

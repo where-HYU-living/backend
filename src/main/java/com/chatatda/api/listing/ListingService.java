@@ -3,6 +3,8 @@ package com.chatatda.api.listing;
 import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
 import com.chatatda.api.common.PageResponse;
+import com.chatatda.api.favorite.FavoriteRepository;
+import com.chatatda.api.favorite.FavoriteType;
 import com.chatatda.api.geo.NearbyService;
 import com.chatatda.api.geo.Place;
 import com.chatatda.api.geo.WalkService;
@@ -18,6 +20,7 @@ import com.chatatda.api.pricing.PricingProperties;
 import com.chatatda.api.user.ProfileService;
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -34,17 +37,20 @@ public class ListingService {
     private final WalkService walk;
     private final NearbyService nearby;
     private final ProfileService profiles;
+    private final FavoriteRepository favorites;
     private final PricingProperties properties;
     private final PriceCalculator calculator;
     private final Clock clock;
 
     public ListingService(ListingRepository listings, PriceCheckService priceCheck, WalkService walk,
-                          NearbyService nearby, ProfileService profiles, PricingProperties properties, Clock clock) {
+                          NearbyService nearby, ProfileService profiles, FavoriteRepository favorites,
+                          PricingProperties properties, Clock clock) {
         this.listings = listings;
         this.priceCheck = priceCheck;
         this.walk = walk;
         this.nearby = nearby;
         this.profiles = profiles;
+        this.favorites = favorites;
         this.properties = properties;
         this.calculator = new PriceCalculator(properties);
         this.clock = clock;
@@ -63,10 +69,11 @@ public class ListingService {
     @Transactional(readOnly = true)
     public PageResponse<ListingSummary> list(ListingQuery q, Long userIdOrNull) {
         Long buildingId = effectiveBuilding(q.buildingId(), userIdOrNull);
+        Set<Long> favorited = favoritedIds(userIdOrNull);
 
         if (buildingId != null && q.maxWalkMin() != null) {
             List<ListingSummary> filtered = listings.findAll(q.toSpecification(), BY_ID).stream()
-                    .map(l -> summary(l, buildingId))
+                    .map(l -> summary(l, buildingId, favorited.contains(l.getId())))
                     .filter(s -> s.walkMin() != null && s.walkMin() <= q.maxWalkMin())
                     .toList();
             int from = Math.min(q.page() * q.size(), filtered.size());
@@ -75,14 +82,15 @@ public class ListingService {
         }
 
         Page<Listing> page = listings.findAll(q.toSpecification(), PageRequest.of(q.page(), q.size(), BY_ID));
-        List<ListingSummary> items = page.getContent().stream().map(l -> summary(l, buildingId)).toList();
+        List<ListingSummary> items = page.getContent().stream()
+                .map(l -> summary(l, buildingId, favorited.contains(l.getId()))).toList();
         return new PageResponse<>(items, q.page(), q.size(), page.getTotalElements());
     }
 
     @Transactional(readOnly = true)
     public ListingDetail detail(long id, Long buildingId, Long userIdOrNull) {
         Listing l = load(id);
-        return ListingDetail.of(summary(l, effectiveBuilding(buildingId, userIdOrNull)), l);
+        return ListingDetail.of(summaryOf(l, buildingId, userIdOrNull), l);
     }
 
     @Transactional(readOnly = true)
@@ -97,16 +105,22 @@ public class ListingService {
     }
 
     public ListingSummary summaryOf(Listing l, Long buildingId, Long userIdOrNull) {
-        return summary(l, effectiveBuilding(buildingId, userIdOrNull));
+        boolean favorited = userIdOrNull != null
+                && favorites.existsByUserIdAndTypeAndTargetId(userIdOrNull, FavoriteType.LISTING, l.getId());
+        return summary(l, effectiveBuilding(buildingId, userIdOrNull), favorited);
     }
 
-    private ListingSummary summary(Listing l, Long effectiveBuildingId) {
+    private Set<Long> favoritedIds(Long userIdOrNull) {
+        return userIdOrNull == null ? Set.of() : favorites.findTargetIds(userIdOrNull, FavoriteType.LISTING);
+    }
+
+    private ListingSummary summary(Listing l, Long effectiveBuildingId, boolean favorited) {
         long converted = l.getConvertedRent() != null ? l.getConvertedRent()
                 : calculator.convertedRent(l.getDeposit(), l.getRent(), l.getMgmtFee(), properties.conversionRate());
         Grade grade = l.getGrade() != null ? l.getGrade() : Grade.PENDING;
         return new ListingSummary(l.getId(), l.getTitle(), l.getAddress(), l.getDong(), l.getLat(), l.getLng(),
                 l.getDeposit(), l.getRent(), l.getMgmtFee(), l.getAreaM2(), l.getFloor(), l.getRoomType(), converted,
-                grade, walk.minutesOrNull(l.getLat(), l.getLng(), effectiveBuildingId), l.getThumbnailUrl(), false);
+                grade, walk.minutesOrNull(l.getLat(), l.getLng(), effectiveBuildingId), l.getThumbnailUrl(), favorited);
     }
 
     private Long effectiveBuilding(Long buildingId, Long userIdOrNull) {
