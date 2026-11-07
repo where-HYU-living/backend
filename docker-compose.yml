@@ -31,8 +31,8 @@ services:
       DB_URL: jdbc:postgresql://db:5432/chatatda
       DB_USER: chatatda
       DB_PASSWORD: chatatda
-      # 로컬 개발용 값. 배포에서는 반드시 환경변수로 바꿀 것 (32자 이상)
-      JWT_SECRET: ${JWT_SECRET:-local-dev-jwt-secret-local-dev-jwt-secret-1234}
+      # 비밀값은 저장소에 두지 않는다: 이 폴더의 .env (git 무시됨)에 JWT_SECRET=... 를 넣는다. 예시는 .env.example
+      JWT_SECRET: ${JWT_SECRET:?backend/.env 에 JWT_SECRET 을 넣어 주세요 (.env.example 참고, 32자 이상)}
       MAIL_MODE: ${MAIL_MODE:-log}
       SEED_ENABLED: "true"
       INGEST_ENABLED: "false"
