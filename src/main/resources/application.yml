@@ -17,6 +17,10 @@ spring:
 jwt:
   secret: ${JWT_SECRET:}
 
+google:
+  # 구글 OAuth 웹 클라이언트 ID (공개값, 프론트 VITE_GOOGLE_CLIENT_ID 와 같은 값). 비우면 /auth/google 이 502 를 준다
+  client-id: ${GOOGLE_CLIENT_ID:}
+
 app:
   mail:
     mode: ${MAIL_MODE:log}

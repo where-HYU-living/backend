@@ -2,9 +2,7 @@ package com.chatatda.api.auth;
 
 import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
-import com.chatatda.api.common.JwtProvider;
 import com.chatatda.api.user.User;
-import com.chatatda.api.user.UserRepository;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -24,21 +22,17 @@ public class EmailCodeService {
     private static final Duration CODE_TTL = Duration.ofMinutes(10);
     private static final Duration RESEND_INTERVAL = Duration.ofSeconds(60);
     private static final int MAX_ATTEMPTS = 5;
-    private static final int NICKNAME_TRIES = 50;
 
     private final EmailCodeRepository codes;
-    private final UserRepository users;
+    private final AccountService accounts;
     private final MailPort mail;
-    private final JwtProvider jwtProvider;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
 
-    public EmailCodeService(EmailCodeRepository codes, UserRepository users, MailPort mail,
-                            JwtProvider jwtProvider, Clock clock) {
+    public EmailCodeService(EmailCodeRepository codes, AccountService accounts, MailPort mail, Clock clock) {
         this.codes = codes;
-        this.users = users;
+        this.accounts = accounts;
         this.mail = mail;
-        this.jwtProvider = jwtProvider;
         this.clock = clock;
     }
 
@@ -94,9 +88,8 @@ public class EmailCodeService {
         }
 
         codes.delete(saved);
-        User user = users.findByEmail(email)
-                .orElseGet(() -> users.save(new User(email, newNickname(), now)));
-        return new LoginResult(jwtProvider.issue(user.getId()), JwtProvider.EXPIRES_IN_SECONDS, user);
+        AccountService.LoginResult result = accounts.loginVerifiedEmail(email);
+        return new LoginResult(result.accessToken(), result.expiresIn(), result.user());
     }
 
     private ApiException tooManyAttempts() {
@@ -114,16 +107,6 @@ public class EmailCodeService {
         if (!ok) {
             throw new ApiException(ErrorCode.INVALID_EMAIL_DOMAIN, "한양대 메일(@hanyang.ac.kr)만 사용할 수 있어요.");
         }
-    }
-
-    private String newNickname() {
-        for (int i = 0; i < NICKNAME_TRIES; i++) {
-            String nickname = "한양" + String.format("%04d", random.nextInt(10_000));
-            if (!users.existsByNickname(nickname)) {
-                return nickname;
-            }
-        }
-        throw new IllegalStateException("닉네임을 만들지 못했어요.");
     }
 
     private String hash(String email, String code) {
