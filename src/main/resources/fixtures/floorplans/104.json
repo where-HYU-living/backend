@@ -66,7 +66,7 @@
  ],
  "entrance": [1.2, 5.8],
  "fixtures": [
-  { "kind": "bed", "position": [2.09, 2.6], "facing": "W", "size": [1.1, 2.0, 0.45], "room": "거실" },
+  { "kind": "bed", "position": [2.09, 2.15], "facing": "W", "size": [1.1, 2.0, 0.45], "room": "거실" },
   { "kind": "wardrobe", "position": [2.41, 3.53], "facing": "N", "size": [1.31, 0.48], "room": "거실" },
   { "kind": "kitchenCounter", "position": [0.4, 4.29], "facing": "E", "size": [1.57, 0.6, 0.85], "room": "거실" },
   { "kind": "kitchenSink", "position": [0.4, 4.35], "facing": "E", "room": "거실" },
