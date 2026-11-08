@@ -10,6 +10,7 @@ import com.chatatda.api.geo.Place;
 import com.chatatda.api.geo.WalkService;
 import com.chatatda.api.listing.ListingDtos.ListingDetail;
 import com.chatatda.api.listing.ListingDtos.ListingSummary;
+import com.chatatda.api.pricing.AiRentService;
 import com.chatatda.api.pricing.Grade;
 import com.chatatda.api.pricing.PriceCalculator;
 import com.chatatda.api.pricing.PriceCheckService;
@@ -34,6 +35,7 @@ public class ListingService {
 
     private final ListingRepository listings;
     private final PriceCheckService priceCheck;
+    private final AiRentService aiRent;
     private final WalkService walk;
     private final NearbyService nearby;
     private final ProfileService profiles;
@@ -42,11 +44,12 @@ public class ListingService {
     private final PriceCalculator calculator;
     private final Clock clock;
 
-    public ListingService(ListingRepository listings, PriceCheckService priceCheck, WalkService walk,
-                          NearbyService nearby, ProfileService profiles, FavoriteRepository favorites,
-                          PricingProperties properties, Clock clock) {
+    public ListingService(ListingRepository listings, PriceCheckService priceCheck, AiRentService aiRent,
+                          WalkService walk, NearbyService nearby, ProfileService profiles,
+                          FavoriteRepository favorites, PricingProperties properties, Clock clock) {
         this.listings = listings;
         this.priceCheck = priceCheck;
+        this.aiRent = aiRent;
         this.walk = walk;
         this.nearby = nearby;
         this.profiles = profiles;
@@ -95,7 +98,9 @@ public class ListingService {
 
     @Transactional(readOnly = true)
     public PriceCheckDto priceCheck(long id, Long userIdOrNull) {
-        return priceCheck.check(input(load(id)), userIdOrNull);
+        Listing l = load(id);
+        return priceCheck.check(input(l), userIdOrNull,
+                aiRent.forListing(l.getId(), l.getDong(), l.getAreaM2(), l.getFloor(), l.getBuiltYear()));
     }
 
     @Transactional(readOnly = true)

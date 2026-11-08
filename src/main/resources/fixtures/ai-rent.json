@@ -1,0 +1,184 @@
+{
+  "listings": [
+    {
+      "listingId": 1,
+      "title": "한양대 도보 1분 초소형 원룸",
+      "address": "서울 성동구 사근동 147",
+      "areaM2": 11.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 2,
+      "title": "사근동 분리형 원룸",
+      "address": "서울 성동구 사근동 169",
+      "areaM2": 18.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 3,
+      "title": "사근동 오픈형 원룸",
+      "address": "서울 성동구 사근동 311",
+      "areaM2": 16.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 4,
+      "title": "사근동 신축 분리형",
+      "address": "서울 성동구 사근동 171",
+      "areaM2": 20.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 5,
+      "title": "사근동 1.5룸",
+      "address": "서울 성동구 사근동 165",
+      "areaM2": 23.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 6,
+      "title": "사근동 풀옵션 원룸",
+      "address": "서울 성동구 사근동 187",
+      "areaM2": 18.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 7,
+      "title": "사근동 저렴한 원룸",
+      "address": "서울 성동구 사근동 193",
+      "areaM2": 14.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 8,
+      "title": "사근동 넓은 1.5룸",
+      "address": "서울 성동구 사근동 299",
+      "areaM2": 26.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 9,
+      "title": "사근동 원룸텔",
+      "address": "서울 성동구 사근동 175",
+      "areaM2": 8.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 10,
+      "title": "행당동 분리형 원룸",
+      "address": "서울 성동구 행당동 379",
+      "areaM2": 20.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 11,
+      "title": "행당동 1.5룸",
+      "address": "서울 성동구 행당동 139",
+      "areaM2": 23.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 12,
+      "title": "행당동 투룸",
+      "address": "서울 성동구 행당동 247",
+      "areaM2": 33.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 13,
+      "title": "행당동 대로변 원룸",
+      "address": "서울 성동구 행당동 214",
+      "areaM2": 16.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 14,
+      "title": "행당동 분리형",
+      "address": "서울 성동구 행당동 268",
+      "areaM2": 18.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 15,
+      "title": "행당동 신축 1.5룸",
+      "address": "서울 성동구 행당동 1",
+      "areaM2": 26.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 16,
+      "title": "행당동 오픈형 원룸",
+      "address": "서울 성동구 행당동 355",
+      "areaM2": 16.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 17,
+      "title": "행당동 큰길가 원룸",
+      "address": "서울 성동구 행당동 349",
+      "areaM2": 20.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 18,
+      "title": "마장동 분리형 원룸",
+      "address": "서울 성동구 마장동 811",
+      "areaM2": 20.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 19,
+      "title": "마장동 오픈형 원룸",
+      "address": "서울 성동구 마장동 829",
+      "areaM2": 18.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    },
+    {
+      "listingId": 20,
+      "title": "마장동 1.5룸",
+      "address": "서울 성동구 마장동 817",
+      "areaM2": 26.0,
+      "fairRent": null,
+      "low": null,
+      "high": null
+    }
+  ]
+}

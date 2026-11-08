@@ -36,6 +36,8 @@ app:
     months: 12
   bus-stops:
     location: classpath:geo/bus-stops.json
+  ai-rent:
+    location: classpath:fixtures/ai-rent.json   # AI 서버가 꺼져 있을 때 쓰는 매물별 AI 적정가
   upload:
     # 양도 글 사진. 배포에서 디스크가 지워지는 환경이면 외부 저장소로 바꿀 것 (Task 16)
     dir: ${UPLOAD_DIR:uploads}

@@ -1,0 +1,7 @@
+{
+  "listings": [
+    { "listingId": 1, "fairRent": 490000, "low": 450000, "high": 550000 },
+    { "listingId": 2, "fairRent": 520000 },
+    { "listingId": 3, "fairRent": null, "low": null, "high": null }
+  ]
+}

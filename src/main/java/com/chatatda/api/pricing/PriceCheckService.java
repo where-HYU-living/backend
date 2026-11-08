@@ -23,7 +23,7 @@ public class PriceCheckService {
 
     public record PriceCheckDto(long convertedRent, Long fairRent, Long monthlyExcess, int contractMonths,
                                 Long totalExcess, Double excessRate, Grade grade, double conversionRate,
-                                SampleView sample, BudgetView budget) {
+                                SampleView sample, BudgetView budget, AiEstimate aiEstimate) {
     }
 
     private final FairRentEstimator estimator;
@@ -45,11 +45,17 @@ public class PriceCheckService {
     }
 
     public PriceCheckDto check(PriceInput input, Long userIdOrNull) {
+        return check(input, userIdOrNull, null);
+    }
+
+    /** aiEstimate 는 룰 기반 판정과 별개로 옆에 같이 보여 줄 AI 적정가 (없으면 null) */
+    public PriceCheckDto check(PriceInput input, Long userIdOrNull, AiEstimate aiEstimate) {
         PriceResult r = evaluate(input);
         BudgetView budget = userIdOrNull == null ? null
                 : profiles.budget(userIdOrNull).map(b -> budgetView(b, r.convertedRent(), input.deposit())).orElse(null);
         return new PriceCheckDto(r.convertedRent(), r.fairRent(), r.monthlyExcess(), r.contractMonths(),
-                r.totalExcess(), r.excessRate(), r.grade(), r.conversionRate(), SampleView.of(r.sample()), budget);
+                r.totalExcess(), r.excessRate(), r.grade(), r.conversionRate(), SampleView.of(r.sample()), budget,
+                aiEstimate);
     }
 
     private static BudgetView budgetView(Budget b, long convertedRent, long deposit) {
