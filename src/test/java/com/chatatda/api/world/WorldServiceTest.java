@@ -280,6 +280,52 @@ class WorldServiceTest {
     }
 
     @Test
+    void move_withRoom_isRelayed_andOutdoorMoveHasNoRoom() {
+        Box a = new Box();
+        WorldPlayer pa = join(a, "a");
+        Box b = new Box();
+        WorldPlayer pb = join(b, "b");
+
+        world.onMessage(pb, "{\"t\":\"move\",\"p\":[2.5,0,3],\"r\":1,\"a\":\"walk\",\"room\":101}");
+        world.tick();
+        JsonNode in = a.last("state").path("players").get(0);
+        assertThat(in.path("room").asInt()).isEqualTo(101);
+        assertThat(pb.pose().room()).isEqualTo(101);
+
+        // 같은 좌표라도 방에서 나오면(room 없음) 바뀐 것으로 보고 다시 보낸다
+        world.onMessage(pb, "{\"t\":\"move\",\"p\":[2.5,0,3],\"r\":1,\"a\":\"walk\"}");
+        world.tick();
+        assertThat(a.of("state")).hasSize(2);
+        assertThat(a.last("state").path("players").get(0).has("room")).isFalse();
+
+        // 새로 들어온 사람은 welcome 에서 방에 있는 사람의 room 을 받는다
+        world.onMessage(pa, "{\"t\":\"move\",\"p\":[1,0,1],\"r\":0,\"a\":\"idle\",\"room\":7}");
+        Box c = new Box();
+        join(c, "c");
+        JsonNode others = c.last("welcome").path("players");
+        JsonNode seenA = others.get(0).path("id").asText().equals(pa.id()) ? others.get(0) : others.get(1);
+        assertThat(seenA.path("room").asInt()).isEqualTo(7);
+    }
+
+    @Test
+    void move_invalidRoom_isIgnored() {
+        Box a = new Box();
+        join(a, "a");
+        WorldPlayer pb = join(new Box(), "b");
+        for (String bad : new String[] {
+                "{\"t\":\"move\",\"p\":[1,0,0],\"r\":0,\"a\":\"walk\",\"room\":0}",
+                "{\"t\":\"move\",\"p\":[1,0,0],\"r\":0,\"a\":\"walk\",\"room\":-3}",
+                "{\"t\":\"move\",\"p\":[1,0,0],\"r\":0,\"a\":\"walk\",\"room\":1.5}",
+                "{\"t\":\"move\",\"p\":[1,0,0],\"r\":0,\"a\":\"walk\",\"room\":\"101\"}",
+                "{\"t\":\"move\",\"p\":[1,0,0],\"r\":0,\"a\":\"walk\",\"room\":99999999999}"}) {
+            world.onMessage(pb, bad);
+        }
+        world.tick();
+        assertThat(a.of("state")).isEmpty();
+        assertThat(pb.pose().room()).isNull();
+    }
+
+    @Test
     void move_isRateLimited() {
         Box a = new Box();
         join(a, "a");
@@ -361,6 +407,27 @@ class WorldServiceTest {
         double dz = welcome.path("spawn").path("p").get(2).asDouble() + 40;
         assertThat(Math.hypot(dx, dz)).isBetween(WorldService.INVITE_SPAWN_DISTANCE - 0.01, WorldService.INVITE_SPAWN_DISTANCE + 0.01);
         assertThat(guest.pose().x()).isEqualTo(welcome.path("spawn").path("p").get(0).asDouble());
+    }
+
+    @Test
+    void invite_hostIndoors_spawnsInSameRoomCloser() {
+        Box a = new Box();
+        WorldPlayer host = join(a, "host");
+        world.onMessage(host, "{\"t\":\"move\",\"p\":[3,0.1,4],\"r\":1,\"a\":\"idle\",\"room\":101}");
+        String token = invites.issue(host.id());
+
+        Box b = new Box();
+        WorldPlayer guest = world.join(b, "guest", token, "ip-x").orElseThrow();
+        JsonNode spawn = b.last("welcome").path("spawn");
+        assertThat(spawn.path("room").asInt()).isEqualTo(101);
+        double d = Math.hypot(spawn.path("p").get(0).asDouble() - 3, spawn.path("p").get(2).asDouble() - 4);
+        assertThat(d).isBetween(WorldService.INVITE_SPAWN_DISTANCE_INDOOR - 0.01, WorldService.INVITE_SPAWN_DISTANCE_INDOOR + 0.01);
+        assertThat(guest.pose().room()).isEqualTo(101);
+        // 바깥 초대 스폰에는 room 이 없다
+        world.onMessage(host, "{\"t\":\"move\",\"p\":[10,0,10],\"r\":1,\"a\":\"idle\"}");
+        Box c = new Box();
+        world.join(c, "guest2", invites.issue(host.id()), "ip-y").orElseThrow();
+        assertThat(c.last("welcome").path("spawn").has("room")).isFalse();
     }
 
     @Test

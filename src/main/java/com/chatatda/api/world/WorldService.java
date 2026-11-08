@@ -36,11 +36,14 @@ public class WorldService {
     static final long CHAT_GAP_MS = 400;
     static final long EMOTE_GAP_MS = 400;
     static final double INVITE_SPAWN_DISTANCE = 1.5;
+    /** 실내 초대 스폰은 방이 좁으니 더 가깝게 (실제 자리는 받는 쪽이 벽·가구를 피해 다시 고른다) */
+    static final double INVITE_SPAWN_DISTANCE_INDOOR = 0.8;
+    static final int ROOM_MAX = 1_000_000_000;
     private static final Set<String> ACTIONS = Set.of("idle", "walk", "run");
     private static final Set<String> EMOTES = Set.of("wave", "heart", "clap");
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    record Pub(String id, String nickname, Map<String, String> look, double[] p, double r, String a) {
+    record Pub(String id, String nickname, Map<String, String> look, double[] p, double r, String a, Integer room) {
     }
 
     private final Map<String, WorldPlayer> players = new ConcurrentHashMap<>();
@@ -98,8 +101,14 @@ public class WorldService {
             }
         }
         WorldPlayer.Pose s = me.pose();
+        Map<String, Object> spawn = new LinkedHashMap<>();
+        spawn.put("p", new double[] {s.x(), s.y(), s.z()});
+        spawn.put("r", s.r());
+        if (s.room() != null) {
+            spawn.put("room", s.room()); // 초대한 사람이 실내에 있으면 그 방으로 들어간다
+        }
         out.send(write(Map.of("t", "welcome", "selfId", me.id(), "invited", invited,
-                "spawn", Map.of("p", new double[] {s.x(), s.y(), s.z()}, "r", s.r()), "players", others)));
+                "spawn", spawn, "players", others)));
         broadcast(Map.of("t", "join", "player", pub(me, true)), me.id());
         log.info("world join id={} nick={} invited={} online={}", me.id(), nickname, invited, players.size());
         return Optional.of(me);
@@ -167,8 +176,17 @@ public class WorldService {
         if (!Double.isFinite(r) || !ACTIONS.contains(a)) {
             return;
         }
+        // room: 없거나 null 이면 바깥. 있으면 양의 정수(도면 id)만 — 그 밖의 값은 메시지째 버린다
+        JsonNode rn = m.path("room");
+        Integer room = null;
+        if (!rn.isMissingNode() && !rn.isNull()) {
+            if (!rn.isIntegralNumber() || rn.asLong() < 1 || rn.asLong() > ROOM_MAX) {
+                return;
+            }
+            room = rn.asInt();
+        }
         // 소수 2자리(1cm)·각도 3자리로 줄여 JSON 크기를 줄이고, 달라진 게 없으면 보내지 않는다
-        WorldPlayer.Pose next = new WorldPlayer.Pose(q(v[0], 100), q(v[1], 100), q(v[2], 100), q(r, 1000), a);
+        WorldPlayer.Pose next = new WorldPlayer.Pose(q(v[0], 100), q(v[1], 100), q(v[2], 100), q(r, 1000), a, room);
         if (!next.equals(me.pose())) {
             me.pose(next);
         }
@@ -284,7 +302,7 @@ public class WorldService {
 
     private Pub pub(WorldPlayer p, boolean withNickname) {
         WorldPlayer.Pose s = p.pose();
-        return new Pub(p.id(), withNickname ? p.nickname() : null, withNickname ? p.look() : null, new double[] {s.x(), s.y(), s.z()}, s.r(), s.a());
+        return new Pub(p.id(), withNickname ? p.nickname() : null, withNickname ? p.look() : null, new double[] {s.x(), s.y(), s.z()}, s.r(), s.a(), s.room());
     }
 
     private String write(Object o) {
@@ -299,10 +317,12 @@ public class WorldService {
         return Math.round(v * scale) / scale;
     }
 
+    /** 초대한 사람 옆. 실내면 같은 방(room)·더 가까이 */
     private static WorldPlayer.Pose besideOf(WorldPlayer.Pose host) {
         double angle = ThreadLocalRandom.current().nextDouble(0, Math.PI * 2);
-        return new WorldPlayer.Pose(host.x() + Math.cos(angle) * INVITE_SPAWN_DISTANCE, host.y(),
-                host.z() + Math.sin(angle) * INVITE_SPAWN_DISTANCE, host.r(), "idle");
+        double d = host.room() != null ? INVITE_SPAWN_DISTANCE_INDOOR : INVITE_SPAWN_DISTANCE;
+        return new WorldPlayer.Pose(host.x() + Math.cos(angle) * d, host.y(),
+                host.z() + Math.sin(angle) * d, host.r(), "idle", host.room());
     }
 
     static final Pattern JACKET = Pattern.compile("^[A-Za-z0-9-]{1,16}$");

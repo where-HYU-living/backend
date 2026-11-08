@@ -5,7 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class WorldPlayer {
 
-    public record Pose(double x, double y, double z, double r, String a) {
+    /**
+     * room: 실내 방 투어 중이면 그 도면 id, 바깥(캠퍼스·동네)이면 null.
+     * 실내일 때 x/y/z 는 그 도면의 좌표(m)라 바깥 좌표와 섞으면 안 된다 — 받는 쪽이 room 으로 나눠 그린다.
+     */
+    public record Pose(double x, double y, double z, double r, String a, Integer room) {
+        public Pose(double x, double y, double z, double r, String a) {
+            this(x, y, z, r, a, null);
+        }
     }
 
     private final String id;
