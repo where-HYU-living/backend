@@ -60,6 +60,9 @@ external:
   kakao:
     base-url: https://dapi.kakao.com
     rest-key: ${KAKAO_REST_KEY:}
+  ai:
+    enabled: ${AI_ENABLED:false}   # 평면도 AI 서버 호출 여부. 기본 꺼짐 -> fixtures 만 사용
+    base-url: ${AI_SERVER_URL:}    # ai-server/ 주소
 
 pricing:
   conversion-rate: 0.046
