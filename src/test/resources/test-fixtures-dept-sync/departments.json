@@ -1,0 +1,8 @@
+[
+  { "id": 11, "name": "테스트 컴퓨터학과", "college": "테스트 공과대학", "defaultBuildingIds": [102, 101] },
+  { "id": 12, "name": "테스트 기계학과", "college": "테스트 공과대학", "defaultBuildingIds": [102] },
+  { "id": 13, "name": "이름이 바뀐 학과", "college": "테스트 경영대학", "defaultBuildingIds": [101] },
+  { "id": 14, "name": "테스트 국문학과", "college": "테스트 인문대학", "defaultBuildingIds": [108, 104] },
+  { "id": 15, "name": "테스트 사학과", "college": "테스트 인문대학", "defaultBuildingIds": [999] },
+  { "id": 99, "name": "DB 에 없는 학과", "college": "테스트 인문대학", "defaultBuildingIds": [101] }
+]

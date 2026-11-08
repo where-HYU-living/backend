@@ -4,6 +4,8 @@
     "name": "건축학부",
     "college": "공과대학",
     "defaultBuildingIds": [
+      202,
+      203,
       206
     ]
   },
@@ -12,6 +14,8 @@
     "name": "건축공학부",
     "college": "공과대학",
     "defaultBuildingIds": [
+      202,
+      203,
       206
     ]
   },
@@ -20,6 +24,7 @@
     "name": "건설환경공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      201,
       206
     ]
   },
@@ -28,6 +33,8 @@
     "name": "도시공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      203,
+      304,
       206
     ]
   },
@@ -36,6 +43,8 @@
     "name": "자원환경공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      203,
+      202,
       206
     ]
   },
@@ -44,7 +53,9 @@
     "name": "융합전자공학부",
     "college": "공과대학",
     "defaultBuildingIds": [
-      206
+      206,
+      305,
+      208
     ]
   },
   {
@@ -52,7 +63,9 @@
     "name": "전기·생체공학부",
     "college": "공과대학",
     "defaultBuildingIds": [
-      206
+      206,
+      304,
+      305
     ]
   },
   {
@@ -60,6 +73,7 @@
     "name": "신소재공학부",
     "college": "공과대학",
     "defaultBuildingIds": [
+      204,
       206
     ]
   },
@@ -68,6 +82,7 @@
     "name": "화학공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      204,
       206
     ]
   },
@@ -76,6 +91,7 @@
     "name": "생명공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      305,
       206
     ]
   },
@@ -84,6 +100,7 @@
     "name": "유기나노공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      204,
       206
     ]
   },
@@ -92,6 +109,7 @@
     "name": "에너지공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      208,
       206
     ]
   },
@@ -100,7 +118,9 @@
     "name": "기계공학부",
     "college": "공과대학",
     "defaultBuildingIds": [
-      206
+      213,
+      206,
+      208
     ]
   },
   {
@@ -108,6 +128,8 @@
     "name": "원자력공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      1003,
+      108,
       206
     ]
   },
@@ -124,7 +146,8 @@
     "name": "컴퓨터소프트웨어학부",
     "college": "공과대학",
     "defaultBuildingIds": [
-      206
+      206,
+      305
     ]
   },
   {
@@ -132,6 +155,7 @@
     "name": "데이터사이언스학부",
     "college": "공과대학",
     "defaultBuildingIds": [
+      208,
       206
     ]
   },
@@ -140,6 +164,7 @@
     "name": "미래자동차공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      210,
       206
     ]
   },
@@ -148,7 +173,8 @@
     "name": "정보시스템학과",
     "college": "공과대학",
     "defaultBuildingIds": [
-      305
+      305,
+      206
     ]
   },
   {
@@ -156,6 +182,7 @@
     "name": "반도체공학과",
     "college": "공과대학",
     "defaultBuildingIds": [
+      701,
       206
     ]
   },
@@ -164,7 +191,8 @@
     "name": "의예과",
     "college": "의과대학",
     "defaultBuildingIds": [
-      604
+      604,
+      606
     ]
   },
   {
@@ -284,7 +312,8 @@
     "name": "정책학과",
     "college": "정책과학대학",
     "defaultBuildingIds": [
-      705
+      705,
+      409
     ]
   },
   {
@@ -292,7 +321,8 @@
     "name": "행정학과",
     "college": "정책과학대학",
     "defaultBuildingIds": [
-      705
+      705,
+      409
     ]
   },
   {
@@ -324,7 +354,8 @@
     "name": "교육학과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -332,7 +363,8 @@
     "name": "교육공학과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -340,7 +372,8 @@
     "name": "국어교육과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -348,7 +381,8 @@
     "name": "영어교육과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -356,7 +390,8 @@
     "name": "수학교육과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -364,7 +399,8 @@
     "name": "응용미술교육과",
     "college": "사범대학",
     "defaultBuildingIds": [
-      505
+      505,
+      506
     ]
   },
   {
@@ -396,7 +432,9 @@
     "name": "성악과",
     "college": "음악대학",
     "defaultBuildingIds": [
-      402
+      402,
+      403,
+      405
     ]
   },
   {
@@ -404,7 +442,9 @@
     "name": "작곡과",
     "college": "음악대학",
     "defaultBuildingIds": [
-      402
+      402,
+      403,
+      405
     ]
   },
   {
@@ -412,7 +452,9 @@
     "name": "피아노과",
     "college": "음악대학",
     "defaultBuildingIds": [
-      402
+      402,
+      403,
+      405
     ]
   },
   {
@@ -420,7 +462,9 @@
     "name": "관현악과",
     "college": "음악대학",
     "defaultBuildingIds": [
-      402
+      402,
+      403,
+      405
     ]
   },
   {
@@ -428,7 +472,9 @@
     "name": "국악과",
     "college": "음악대학",
     "defaultBuildingIds": [
-      402
+      402,
+      403,
+      405
     ]
   },
   {
@@ -444,6 +490,7 @@
     "name": "연극영화학과",
     "college": "예술체육대학",
     "defaultBuildingIds": [
+      305,
       306
     ]
   },
@@ -452,7 +499,8 @@
     "name": "무용학과",
     "college": "예술체육대학",
     "defaultBuildingIds": [
-      306
+      306,
+      305
     ]
   },
   {
@@ -468,7 +516,8 @@
     "name": "간호학과",
     "college": "간호대학",
     "defaultBuildingIds": [
-      617
+      617,
+      618
     ]
   },
   {
