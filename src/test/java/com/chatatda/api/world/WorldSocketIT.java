@@ -134,6 +134,7 @@ class WorldSocketIT extends IntegrationTest {
         JsonNode body = om.readTree(res.getResponse().getContentAsString());
         String url = body.path("url").asText();
         assertThat(url).startsWith("http://localhost:5173/?invite=");
+        assertThat(body.path("expiresAt").asText()).isNotBlank();
         String token = url.substring(url.indexOf("invite=") + 7);
 
         Client guest = connect("?nickname=guest&invite=" + token, null);

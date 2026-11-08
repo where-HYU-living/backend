@@ -259,11 +259,11 @@ public class FixtureSeeder {
                             && s.landlord() != null && s.depositReturn() != null,
                     "reviews.json: authorNickname·targetType·targetId·rating·scores(5개) 는 필수예요.");
             jdbc.update("""
-                            insert into reviews (author_id, target_type, target_id, rating, noise, light, bugs, landlord,
+                            insert into reviews (user_id, target_type, target_id, rating, noise, light, bugs, landlord,
                                                  deposit_return, text, created_at)
                             values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     demoUser(f.authorNickname()), f.targetType(), f.targetId(), f.rating(), s.noise(), s.light(), s.bugs(),
-                    s.landlord(), s.depositReturn(), f.text(), now);
+                    s.landlord(), s.depositReturn(), f.text() == null ? "" : f.text(), now);
         }
         log.info("reviews 시드 {}건", fixtures.get().size());
     }

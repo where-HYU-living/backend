@@ -83,9 +83,11 @@ class ReviewApiTest extends IntegrationTest {
     }
 
     @Test
-    void emptyText_ok() throws Exception {
-        create(body("LISTING", 201, 5, 5, null, "null", "null")).andExpect(status().isCreated());
+    void emptyText_ok_butNullText_400() throws Exception {
         create(body("LISTING", 201, 5, 5, "", "null", "null")).andExpect(status().isCreated());
+        create(body("LISTING", 201, 5, 5, null, "null", "null"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.details.text").exists());
     }
 
     @Test

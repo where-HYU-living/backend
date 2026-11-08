@@ -53,6 +53,12 @@ public class InviteService {
         return token;
     }
 
+    /** 토큰 만료 시각 (없거나 지났으면 null) */
+    public Instant expiresAt(String token) {
+        Invite invite = byToken.get(token);
+        return invite == null ? null : invite.expiresAt();
+    }
+
     /** 유효한 토큰이면 초대한 접속자 id. */
     public Optional<String> resolve(String token) {
         if (token == null || token.isBlank()) {

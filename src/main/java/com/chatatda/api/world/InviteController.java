@@ -19,7 +19,7 @@ public class InviteController {
     public record InviteRequest(@NotBlank String playerId) {
     }
 
-    public record InviteResponse(String url, String token) {
+    public record InviteResponse(String url, String token, java.time.Instant expiresAt) {
     }
 
     private final InviteService invites;
@@ -41,6 +41,6 @@ public class InviteController {
         String token = invites.issue(request.playerId());
         String origin = http.getHeader("Origin");
         String base = origin != null && allowedOrigins.contains(origin) ? origin : allowedOrigins.get(0);
-        return new InviteResponse(base.replaceAll("/+$", "") + "/?invite=" + token, token);
+        return new InviteResponse(base.replaceAll("/+$", "") + "/?invite=" + token, token, invites.expiresAt(token));
     }
 }
