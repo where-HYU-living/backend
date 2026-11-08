@@ -69,7 +69,8 @@ public class ListingService {
         return all.size();
     }
 
-    @Transactional(readOnly = true)
+    // 트랜잭션을 걸지 않는다: 저장소 호출마다 짧게 연결을 쓰고 돌려준다. 도보 분은 TMAP 을 부를 수 있어 연결을 쥔 채 기다리면
+    // 캐시에 없는 요청이 몰릴 때 연결이 바닥난다 (요약에 쓰는 필드는 모두 기본 컬럼이라 지연 로딩이 없다)
     public PageResponse<ListingSummary> list(ListingQuery q, Long userIdOrNull) {
         Long buildingId = effectiveBuilding(q.buildingId(), userIdOrNull);
         Set<Long> favorited = favoritedIds(userIdOrNull);

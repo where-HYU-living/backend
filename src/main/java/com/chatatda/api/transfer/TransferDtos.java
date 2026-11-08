@@ -3,6 +3,8 @@ package com.chatatda.api.transfer;
 import com.chatatda.api.listing.RoomType;
 import com.chatatda.api.pricing.Grade;
 import com.chatatda.api.pricing.PriceCheckService.PriceCheckDto;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -22,8 +24,8 @@ public final class TransferDtos {
             @NotBlank @Size(min = 2, max = 40) String title,
             @NotBlank @Size(max = 300) String address,
             @NotBlank @Size(max = 50) String dong,
-            @NotNull Double lat,
-            @NotNull Double lng,
+            @NotNull @DecimalMin("33") @DecimalMax("39") Double lat, // 국내 좌표만 (잘못된 좌표가 도보 계산을 망치지 않게)
+            @NotNull @DecimalMin("124") @DecimalMax("132") Double lng,
             @NotNull @PositiveOrZero Long deposit,
             @NotNull @PositiveOrZero Long rent,
             @PositiveOrZero Long mgmtFee,
@@ -44,6 +46,10 @@ public final class TransferDtos {
                                   RoomType roomType, long convertedRent, Grade grade, Integer walkMin,
                                   String thumbnailUrl, boolean favorited, int remainingMonths,
                                   LocalDate availableFrom, TransferStatus status, String authorNickname) {
+        public TransferSummary withWalkMin(Integer minutes) {
+            return new TransferSummary(id, title, address, dong, lat, lng, deposit, rent, mgmtFee, areaM2, floor, roomType,
+                    convertedRent, grade, minutes, thumbnailUrl, favorited, remainingMonths, availableFrom, status, authorNickname);
+        }
     }
 
     public record TransferDetail(long id, String title, String address, String dong, double lat, double lng,

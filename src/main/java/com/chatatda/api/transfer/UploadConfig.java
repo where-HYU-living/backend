@@ -16,6 +16,8 @@ public class UploadConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler(LocalDiskStorage.PATH + "**")
-                .addResourceLocations(storage.dir().toUri().toString());
+                .addResourceLocations(storage.dir().toUri().toString())
+                // 파일 이름이 UUID 라 내용이 바뀌지 않는다 → 브라우저·CDN 이 1년 동안 다시 받지 않게
+                .setCacheControl(org.springframework.http.CacheControl.maxAge(365, java.util.concurrent.TimeUnit.DAYS).cachePublic().immutable());
     }
 }

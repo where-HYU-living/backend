@@ -22,6 +22,8 @@ public class EmailCodeService {
     private static final Duration CODE_TTL = Duration.ofMinutes(10);
     private static final Duration RESEND_INTERVAL = Duration.ofSeconds(60);
     private static final int MAX_ATTEMPTS = 5;
+    /** 다 틀려 잠긴 메일은 1분이 아니라 15분 뒤에야 새 코드를 준다 (재전송으로 시도 횟수를 계속 되살리는 대입 공격을 늦춘다) */
+    private static final Duration LOCKED_RESEND_INTERVAL = Duration.ofMinutes(15);
 
     private final EmailCodeRepository codes;
     private final AccountService accounts;
@@ -45,7 +47,10 @@ public class EmailCodeService {
         requireHanyangEmail(email);
         Instant now = clock.instant();
 
-        EmailCode existing = codes.findById(email).orElse(null);
+        EmailCode existing = codes.findForUpdate(email).orElse(null);
+        if (existing != null && existing.getAttempts() >= MAX_ATTEMPTS && existing.getSentAt().plus(LOCKED_RESEND_INTERVAL).isAfter(now)) {
+            throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "인증 코드를 너무 많이 틀렸어요. 15분 뒤에 다시 받아 주세요.");
+        }
         if (existing != null && existing.getSentAt().plus(RESEND_INTERVAL).isAfter(now)) {
             throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "인증 메일은 1분 뒤에 다시 보낼 수 있어요.");
         }
@@ -54,7 +59,11 @@ public class EmailCodeService {
         String hash = hash(email, code);
         Instant expiresAt = now.plus(CODE_TTL);
         if (existing == null) {
-            codes.save(new EmailCode(email, hash, now, expiresAt));
+            try {
+                codes.saveAndFlush(new EmailCode(email, hash, now, expiresAt)); // 처음 보내는 메일이 동시에 오면 하나만 들어간다
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                throw new ApiException(ErrorCode.TOO_MANY_REQUESTS, "인증 메일은 1분 뒤에 다시 보낼 수 있어요.");
+            }
         } else {
             existing.renew(hash, now, expiresAt);
         }
@@ -71,7 +80,7 @@ public class EmailCodeService {
         String email = normalize(rawEmail);
         Instant now = clock.instant();
 
-        EmailCode saved = codes.findById(email)
+        EmailCode saved = codes.findForUpdate(email)
                 .orElseThrow(() -> new ApiException(ErrorCode.CODE_MISMATCH, "인증 코드가 맞지 않아요."));
         if (saved.getAttempts() >= MAX_ATTEMPTS) {
             throw tooManyAttempts();

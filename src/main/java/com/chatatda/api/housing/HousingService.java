@@ -71,7 +71,7 @@ public class HousingService {
         this.clock = clock;
     }
 
-    @Transactional(readOnly = true)
+    // 트랜잭션 없이: 읽기는 모두 JDBC 한 번씩(자동 커밋), 도보 분은 TMAP 을 부를 수 있어 DB 연결을 쥔 채 기다리지 않게
     public List<HousingSummary> list(HousingQuery q, Long userIdOrNull) {
         Long buildingId = effectiveBuilding(q.buildingId(), userIdOrNull);
         Map<Long, List<UnitRow>> units = unitsByHousing();
@@ -97,7 +97,7 @@ public class HousingService {
         return result;
     }
 
-    @Transactional(readOnly = true)
+    // list 와 같은 이유로 트랜잭션 없이
     public HousingDetail detail(long id, Long buildingId, Long userIdOrNull) {
         HousingRow h = housingRows(id).stream().findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "청년안심주택을 찾을 수 없어요."));

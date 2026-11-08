@@ -130,7 +130,10 @@ class AuthApiTest extends IntegrationTest {
         verify(EMAIL, wrong).andExpect(status().isTooManyRequests()).andExpect(jsonPath("$.code").value("TOO_MANY_REQUESTS"));
         verify(EMAIL, code).andExpect(status().isTooManyRequests());
 
+        // 다 틀려 잠기면 1분이 아니라 15분 뒤에야 새 코드를 준다 (재전송으로 시도 횟수를 되살리는 대입 공격 방지)
         clock.advance(Duration.ofSeconds(61));
+        send(EMAIL).andExpect(status().isTooManyRequests());
+        clock.advance(Duration.ofMinutes(15));
         send(EMAIL).andExpect(status().isNoContent());
         verify(EMAIL, mail.lastCode(EMAIL)).andExpect(status().isOk());
     }

@@ -27,6 +27,10 @@ public class Transfer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 낙관적 잠금 (V12): 글 고치기와 양도 완료가 동시에 오면 늦은 쪽이 409 를 받는다 (예전엔 상태가 조용히 되돌아갔다) */
+    @jakarta.persistence.Version
+    private long version;
+
     @Column(name = "author_id", nullable = false)
     private long authorId;
 

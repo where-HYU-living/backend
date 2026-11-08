@@ -66,6 +66,25 @@ public class GlobalExceptionHandler {
                 "지원하지 않는 요청 방식이에요.", null);
     }
 
+    /** 동시 수정: 다른 요청이 먼저 고쳤다 (양도 글 @Version) */
+    @ExceptionHandler(org.springframework.orm.ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiError> handleOptimisticLock(Exception e) {
+        return respond(ErrorCode.CONFLICT.status(), ErrorCode.CONFLICT, "다른 곳에서 먼저 바뀌었어요. 새로 불러온 뒤 다시 해 주세요.", null);
+    }
+
+    /** 고유 제약 위반: 동시에 같은 것을 두 번 만들려 했다 (500 대신 409) */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    ResponseEntity<ApiError> handleIntegrity(org.springframework.dao.DataIntegrityViolationException e) {
+        log.warn("제약 위반 → 409: {}", e.getMostSpecificCause().getMessage());
+        return respond(ErrorCode.ALREADY_EXISTS.status(), ErrorCode.ALREADY_EXISTS, "이미 처리된 요청이에요.", null);
+    }
+
+    /** multipart 가 아닌 업로드 요청 */
+    @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
+    ResponseEntity<ApiError> handleMultipart(org.springframework.web.multipart.MultipartException e) {
+        return validationFailed("파일을 multipart/form-data 의 file 로 보내 주세요.", Map.of("file", "필수 값이에요."));
+    }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ApiError> handleUnexpected(Exception e) {
         if (e instanceof ErrorResponse er && er.getStatusCode().is4xxClientError()) {

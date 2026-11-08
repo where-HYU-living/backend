@@ -6,6 +6,8 @@ import com.chatatda.api.user.UserRepository;
 import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
+import java.sql.Timestamp;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,9 +23,11 @@ public class AccountService {
     private final UserRepository users;
     private final JwtProvider jwtProvider;
     private final Clock clock;
+    private final JdbcTemplate jdbc;
     private final SecureRandom random = new SecureRandom();
 
-    public AccountService(UserRepository users, JwtProvider jwtProvider, Clock clock) {
+    public AccountService(UserRepository users, JwtProvider jwtProvider, Clock clock, JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
         this.users = users;
         this.jwtProvider = jwtProvider;
         this.clock = clock;
@@ -33,7 +37,16 @@ public class AccountService {
     @Transactional
     public LoginResult loginVerifiedEmail(String email) {
         Instant now = clock.instant();
-        User user = users.findByEmail(email).orElseGet(() -> users.save(new User(email, newNickname(), now)));
+        User user = users.findByEmail(email).orElse(null);
+        // 처음 로그인을 두 번 눌러 같은 메일로 동시에 오면: 먼저 넣은 쪽만 들어가고 나머지는 그 계정을 다시 읽는다 (예전엔 500)
+        for (int i = 0; user == null && i < NICKNAME_TRIES; i++) {
+            jdbc.update("insert into users (email, nickname, created_at) values (?, ?, ?) on conflict do nothing",
+                    email, newNickname(), Timestamp.from(now));
+            user = users.findByEmail(email).orElse(null);
+        }
+        if (user == null) {
+            throw new IllegalStateException("계정을 만들지 못했어요.");
+        }
         return new LoginResult(jwtProvider.issue(user.getId()), JwtProvider.EXPIRES_IN_SECONDS, user);
     }
 

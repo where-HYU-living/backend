@@ -67,7 +67,7 @@ public class AlternativeService {
             housingOptions.add(new Option(u.housingId(), u.housingName() + " " + u.unitName(), u.convertedRent(), u.lat(), u.lng()));
         }
         List<Option> dormOptions = new ArrayList<>();
-        for (DormDto d : dorms.list()) {
+        for (DormDto d : dorms.list(null, null)) { // 도보 분은 아래에서 이 집 기준 건물로 따로 계산
             for (RoomTypeDto r : d.roomTypes()) {
                 dormOptions.add(new Option(d.id(), d.name() + " " + r.name(), r.monthlyCost(), d.lat(), d.lng()));
             }

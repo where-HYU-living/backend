@@ -46,8 +46,8 @@ public class ListingController {
                                              @RequestParam(defaultValue = "0") int page,
                                              @RequestParam(defaultValue = "20") int size,
                                              @CurrentUser(required = false) Long userId) {
-        if (page < 0) {
-            throw invalid("page", "0 이상이어야 해요.");
+        if (page < 0 || page > 10_000) { // 아주 큰 page 는 오프셋 계산이 넘쳐 500 이 났다
+            throw invalid("page", "0 이상 10000 이하여야 해요.");
         }
         if (size < 1) {
             throw invalid("size", "1 이상이어야 해요.");

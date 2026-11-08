@@ -45,10 +45,13 @@ public class TransferService {
     private final ProfileService profiles;
     private final StoragePort storage;
     private final Clock clock;
+    private final org.springframework.transaction.support.TransactionTemplate readOnly;
 
     public TransferService(TransferRepository transfers, UserRepository users, FavoriteRepository favorites,
                            PriceCheckService priceCheck, WalkService walk, ProfileService profiles, StoragePort storage,
-                           Clock clock) {
+                           Clock clock, org.springframework.transaction.PlatformTransactionManager txManager) {
+        this.readOnly = new org.springframework.transaction.support.TransactionTemplate(txManager);
+        this.readOnly.setReadOnly(true);
         this.transfers = transfers;
         this.users = users;
         this.favorites = favorites;
@@ -59,16 +62,21 @@ public class TransferService {
         this.clock = clock;
     }
 
-    @Transactional(readOnly = true)
+    /** DB 읽기(사진 지연 컬렉션 포함)는 짧은 읽기 트랜잭션 안에서, 도보 분(TMAP 가능)은 연결을 돌려준 뒤에 채운다 */
     public PageResponse<TransferSummary> list(Bbox bbox, TransferStatus status, int page, int size, Long userIdOrNull) {
-        Page<Transfer> rows = transfers.findAll(spec(bbox, status), PageRequest.of(page, size, NEWEST));
-        Map<Long, String> nicknames = nicknames(rows.getContent());
-        Set<Long> favorited = userIdOrNull == null ? Set.of() : favorites.findTargetIds(userIdOrNull, FavoriteType.TRANSFER);
         Long building = effectiveBuilding(userIdOrNull);
-        List<TransferSummary> items = rows.getContent().stream()
-                .map(t -> summary(t, nicknames.get(t.getAuthorId()), favorited.contains(t.getId()), building))
-                .toList();
-        return new PageResponse<>(items, page, size, rows.getTotalElements());
+        PageResponse<TransferSummary> rows = readOnly.execute(tx -> {
+            Page<Transfer> found = transfers.findAll(spec(bbox, status), PageRequest.of(page, size, NEWEST));
+            Map<Long, String> nicknames = nicknames(found.getContent());
+            Set<Long> favorited = userIdOrNull == null ? Set.of() : favorites.findTargetIds(userIdOrNull, FavoriteType.TRANSFER);
+            List<TransferSummary> items = found.getContent().stream()
+                    .map(t -> summary(t, nicknames.get(t.getAuthorId()), favorited.contains(t.getId()), null))
+                    .toList();
+            return new PageResponse<>(items, page, size, found.getTotalElements());
+        });
+        List<TransferSummary> withWalk = rows.items().stream()
+                .map(s -> s.withWalkMin(walk.minutesOrNull(s.lat(), s.lng(), building))).toList();
+        return new PageResponse<>(withWalk, rows.page(), rows.size(), rows.total());
     }
 
     @Transactional(readOnly = true)

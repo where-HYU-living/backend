@@ -119,6 +119,7 @@ public class WorldService {
             synchronized (joinLock) {
                 perClient.merge(me.clientKey(), -1, (a, b) -> a + b == 0 ? null : a + b);
             }
+            invites.revoke(me.id());
             broadcast(Map.of("t", "leave", "id", me.id()), me.id());
             log.info("world leave id={} online={}", me.id(), players.size());
         }

@@ -20,8 +20,8 @@ public class DormController {
     }
 
     @GetMapping
-    public List<DormDto> list() {
-        return service.list();
+    public List<DormDto> list(@RequestParam(required = false) Long buildingId, @CurrentUser(required = false) Long userId) {
+        return service.list(buildingId, userId);
     }
 
     @GetMapping("/{id}")

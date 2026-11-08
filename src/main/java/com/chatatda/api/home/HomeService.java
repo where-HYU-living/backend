@@ -6,6 +6,8 @@ import com.chatatda.api.pricing.Grade;
 import com.chatatda.api.pricing.PriceCheckService;
 import com.chatatda.api.pricing.PriceInput;
 import com.chatatda.api.pricing.PriceResult;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -34,7 +36,7 @@ public class HomeService {
     static final String MONTH = "^\\d{4}-(0[1-9]|1[0-2])$";
 
     public record HomeDto(@NotBlank @Size(max = 300) String address, @NotBlank @Size(max = 50) String dong,
-                          @NotNull Double lat, @NotNull Double lng, @NotNull @PositiveOrZero Long deposit,
+                          @NotNull @DecimalMin("33") @DecimalMax("39") Double lat, @NotNull @DecimalMin("124") @DecimalMax("132") Double lng, @NotNull @PositiveOrZero Long deposit,
                           @NotNull @PositiveOrZero Long rent, @PositiveOrZero Long mgmtFee,
                           @NotNull @Positive Double areaM2, @NotNull LocalDate contractStart,
                           @NotNull LocalDate contractEnd) {
@@ -145,7 +147,8 @@ public class HomeService {
 
     public Alert addAlert(long userId, int daysBefore, boolean enabled) {
         long id = jdbc.queryForObject(
-                "insert into home_alerts (user_id, days_before, enabled) values (?, ?, ?) returning id", Long.class,
+                "insert into home_alerts (user_id, days_before, enabled) values (?, ?, ?) "
+                        + "on conflict (user_id, days_before) do update set enabled = excluded.enabled returning id", Long.class,
                 userId, daysBefore, enabled);
         return new Alert(id, daysBefore, enabled);
     }
@@ -182,7 +185,8 @@ public class HomeService {
         PriceResult r = priceCheck.evaluate(new PriceInput(h.deposit(), h.rent(), h.mgmtFee(), h.areaM2(), h.dong(), months));
         Excess excess = null;
         if (r.grade() != Grade.PENDING && r.monthlyExcess() != null) {
-            long elapsed = Math.max(0, ChronoUnit.MONTHS.between(YearMonth.from(h.contractStart()), ym) + 1);
+            // 지난 달 수는 계약 기간 안으로 자른다 (계약 끝난 뒤 달을 골라도 계약 기간 전체 초과액보다 커지지 않게, 입주 전이면 0)
+            long elapsed = Math.min(months, Math.max(0, ChronoUnit.MONTHS.between(YearMonth.from(h.contractStart()), ym) + 1));
             excess = new Excess(r.monthlyExcess(), r.monthlyExcess() * elapsed, r.grade());
         }
         return new Report(ym.toString(), total, cur, prevTotal, diff, top, excess);

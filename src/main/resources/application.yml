@@ -1,3 +1,11 @@
+server:
+  # Railway 같은 프록시 뒤에서 X-Forwarded-Proto/Host 를 믿어 업로드 사진 주소를 https 로 만든다
+  forward-headers-strategy: framework
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 2048
+
 spring:
   application:
     name: chatatda-api
@@ -5,10 +13,25 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/chatatda}
     username: ${DB_USER:chatatda}
     password: ${DB_PASSWORD:chatatda}
+    hikari:
+      # 외부 API(TMAP·카카오)를 기다리는 요청이 몰려도 다른 요청이 연결을 받을 수 있게 넉넉히, 못 받으면 30초가 아니라 5초 안에 실패
+      maximum-pool-size: ${DB_POOL_SIZE:20}
+      connection-timeout: 5000
   jpa:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        # 목록에서 사진 같은 지연 컬렉션을 줄마다 따로 읽지 않고 100개씩 묶어 읽는다 (N+1 방지)
+        default_batch_fetch_size: 100
+  jackson:
+    deserialization:
+      accept-float-as-int: false   # 별점 4.7 같은 소수를 4로 잘라 받지 않고 400
+  task:
+    scheduling:
+      pool:
+        size: 4   # 06시 청년안심주택 수집(몇 분)이 도는 동안에도 멀티플레이 틱·핑이 멈추지 않게
   profiles:
     include: local
   servlet:
@@ -26,6 +49,10 @@ google:
   client-id: ${GOOGLE_CLIENT_ID:}
 
 app:
+  auth:
+    email:
+      # 메일 코드 로그인(/auth/email/*). 화면은 구글 로그인만 쓴다 → 운영에서는 false 권장 (켜 두면 코드 대입 공격 표면)
+      enabled: ${EMAIL_LOGIN_ENABLED:true}
   mail:
     mode: ${MAIL_MODE:log}
   seed:

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1/auth/email")
+// 메일 코드 로그인은 점검 스크립트·테스트용. 운영에서는 EMAIL_LOGIN_ENABLED=false 로 끈다 (화면 로그인은 구글뿐)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.auth.email.enabled", havingValue = "true", matchIfMissing = true)
 public class AuthController {
 
     public record SendRequest(@NotBlank @Email String email) {

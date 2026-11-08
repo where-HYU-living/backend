@@ -41,9 +41,9 @@ public class TransferController {
                                               @RequestParam(defaultValue = "0") int page,
                                               @RequestParam(defaultValue = "20") int size,
                                               @CurrentUser(required = false) Long userId) {
-        if (page < 0 || size < 1) {
+        if (page < 0 || page > 10_000 || size < 1) {
             throw new ApiException(ErrorCode.VALIDATION_FAILED, "요청 값이 올바르지 않아요.",
-                    Map.of(page < 0 ? "page" : "size", page < 0 ? "0 이상이어야 해요." : "1 이상이어야 해요."));
+                    Map.of(size < 1 ? "size" : "page", size < 1 ? "1 이상이어야 해요." : "0 이상 10000 이하여야 해요."));
         }
         return service.list(ListingQuery.Bbox.parse(bbox), status, page, Math.min(size, MAX_PAGE_SIZE), userId);
     }

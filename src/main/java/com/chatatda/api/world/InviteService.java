@@ -71,6 +71,14 @@ public class InviteService {
         return Optional.of(invite.playerId());
     }
 
+    /** 접속을 끊은 사람의 토큰은 바로 지운다 (접속마다 새 id 라 더는 쓸 수 없고, 남겨 두면 24시간 동안 토큰 자리를 차지한다) */
+    public void revoke(String playerId) {
+        String token = tokenByPlayer.remove(playerId);
+        if (token != null) {
+            byToken.remove(token);
+        }
+    }
+
     private void purgeExpired(Instant now) {
         byToken.entrySet().removeIf(e -> {
             boolean expired = !e.getValue().expiresAt().isAfter(now);

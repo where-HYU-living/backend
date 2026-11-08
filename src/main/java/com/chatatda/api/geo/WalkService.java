@@ -11,6 +11,9 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,8 @@ public class WalkService {
             Caffeine.newBuilder().expireAfterWrite(MEMORY_TTL).maximumSize(10_000).build();
     private final Cache<WalkKey, WalkResult> routes =
             Caffeine.newBuilder().expireAfterWrite(MEMORY_TTL).maximumSize(1_000).build();
+    /** 같은 자리·건물을 동시에 물으면 TMAP 은 한 번만 부르고 나머지는 그 결과를 기다린다 */
+    private final ConcurrentHashMap<WalkKey, CompletableFuture<WalkResult>> inflight = new ConcurrentHashMap<>();
     private final AtomicInteger consecutiveFailures = new AtomicInteger();
     private volatile Instant pausedUntil;
 
@@ -48,8 +53,13 @@ public class WalkService {
         this.clock = clock;
     }
 
+    /** 서비스 지역(서울 동부) 근처 좌표인가. 밖이면 TMAP 을 부르지 않는다 (잘못된 좌표가 TMAP 실패로 쌓여 모두의 도보 계산을 멈추지 않게) */
+    public static boolean nearService(double lat, double lng) {
+        return lat >= 37.3 && lat <= 37.8 && lng >= 126.7 && lng <= 127.4;
+    }
+
     public Integer minutesOrNull(double lat, double lng, Long buildingId) {
-        if (buildingId == null) {
+        if (buildingId == null || !nearService(lat, lng)) {
             return null;
         }
         WalkKey key = WalkKey.of(lat, lng, buildingId);
@@ -74,6 +84,9 @@ public class WalkService {
     }
 
     public WalkDto route(double lat, double lng, long buildingId) {
+        if (!nearService(lat, lng)) {
+            throw new ApiException(ErrorCode.VALIDATION_FAILED, "출발 좌표가 서비스 지역 밖이에요.", java.util.Map.of("fromLat", lat, "fromLng", lng));
+        }
         Building building = buildings.findById(buildingId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "건물을 찾을 수 없어요."));
         WalkKey key = WalkKey.of(lat, lng, buildingId);
@@ -96,19 +109,36 @@ public class WalkService {
     }
 
     private WalkResult fetch(WalkKey key, double lat, double lng, Building building) {
+        CompletableFuture<WalkResult> mine = new CompletableFuture<>();
+        CompletableFuture<WalkResult> running = inflight.putIfAbsent(key, mine);
+        if (running != null) {
+            try {
+                return running.join();
+            } catch (CompletionException e) {
+                throw e.getCause() instanceof RuntimeException re ? re : e;
+            }
+        }
+        try {
+            WalkResult result = fetchNow(key, lat, lng, building);
+            mine.complete(result);
+            return result;
+        } catch (RuntimeException e) {
+            mine.completeExceptionally(e);
+            throw e;
+        } finally {
+            inflight.remove(key, mine);
+        }
+    }
+
+    private WalkResult fetchNow(WalkKey key, double lat, double lng, Building building) {
         Instant now = clock.instant();
         Instant paused = pausedUntil;
         if (paused != null && now.isBefore(paused)) {
             throw new ExternalApiException("TMAP 호출을 잠시 멈춘 상태예요.");
         }
+        WalkResult result;
         try {
-            WalkResult result = port.route(lat, lng, building.getLat(), building.getLng());
-            consecutiveFailures.set(0);
-            pausedUntil = null;
-            minutes.put(key, result.minutes());
-            routes.put(key, result);
-            store.save(key, result.minutes(), result.distanceM(), now);
-            return result;
+            result = port.route(lat, lng, building.getLat(), building.getLng());
         } catch (RuntimeException e) {
             if (consecutiveFailures.incrementAndGet() >= FAILURES_TO_PAUSE) {
                 pausedUntil = now.plus(PAUSE);
@@ -117,5 +147,11 @@ public class WalkService {
             }
             throw e instanceof ExternalApiException ex ? ex : new ExternalApiException("TMAP 호출 실패", e);
         }
+        consecutiveFailures.set(0);
+        pausedUntil = null;
+        minutes.put(key, result.minutes());
+        routes.put(key, result);
+        store.save(key, result.minutes(), result.distanceM(), now); // 저장 실패는 TMAP 실패로 세지 않는다 (store 가 삼킨다)
+        return result;
     }
 }

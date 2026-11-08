@@ -39,7 +39,7 @@ public class ProfileService {
 
     @Transactional
     public ProfileView update(long userId, ProfileUpdate update) {
-        User user = load(userId);
+        User user = users.findForUpdate(userId).orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED, "다시 로그인해 주세요."));
 
         if (update.departmentId() != null) {
             Department department = departments.findById(update.departmentId())

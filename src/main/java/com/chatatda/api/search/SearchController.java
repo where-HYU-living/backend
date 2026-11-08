@@ -4,6 +4,9 @@ import com.chatatda.api.common.ApiException;
 import com.chatatda.api.common.ErrorCode;
 import com.chatatda.api.geo.AddressPort;
 import com.chatatda.api.geo.AddressResult;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +34,9 @@ public class SearchController {
 
     private final JdbcTemplate jdbc;
     private final AddressPort address;
+    /** 카카오 주소 결과 10분 캐시: 운영에서 카카오 왕복이 0.7초쯤이라 같은 검색어(타이핑 중 반복·여러 사람)를 다시 부르지 않게. 실패는 캐시하지 않는다 */
+    private final Cache<String, List<AddressResult>> addressCache =
+            Caffeine.newBuilder().expireAfterWrite(Duration.ofMinutes(10)).maximumSize(500).build();
 
     public SearchController(JdbcTemplate jdbc, AddressPort address) {
         this.jdbc = jdbc;
@@ -56,7 +62,7 @@ public class SearchController {
         add(out, n, "BUILDING", "select id, name, null as address, lat, lng from buildings where type <> 'DORM' and name ilike ? order by id limit ?", like);
         if (out.size() < n) {
             try {
-                for (AddressResult a : address.search(term)) {
+                for (AddressResult a : addressCache.get(term, address::search)) {
                     if (out.size() >= n) {
                         break;
                     }

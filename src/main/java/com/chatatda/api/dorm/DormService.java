@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DormService {
@@ -36,18 +35,26 @@ public class DormService {
         this.profiles = profiles;
     }
 
-    @Transactional(readOnly = true)
-    public List<DormDto> list() {
-        return load(null);
+    // 트랜잭션을 걸지 않는다: 읽기는 JDBC 한 번(자동 커밋)이고, 도보 시간은 TMAP 을 부를 수 있어 DB 연결을 쥔 채 기다리지 않게
+
+    /** P1 기숙사 목록: 과 건물(buildingId, 없으면 로그인 사용자의 첫 건물)까지 도보 분을 함께 */
+    public List<DormDto> list(Long buildingId, Long userIdOrNull) {
+        Long effective = effectiveBuilding(buildingId, userIdOrNull);
+        return load(null).stream()
+                .map(d -> new DormDto(d.id(), d.name(), d.lat(), d.lng(), d.roomTypes(), walk.minutesOrNull(d.lat(), d.lng(), effective)))
+                .toList();
     }
 
-    @Transactional(readOnly = true)
     public DormDto detail(long id, Long buildingId, Long userIdOrNull) {
         DormDto d = load(id).stream().findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "기숙사를 찾을 수 없어요."));
-        Long effective = buildingId != null ? buildingId
-                : userIdOrNull == null ? null : profiles.firstBuildingId(userIdOrNull).orElse(null);
+        Long effective = effectiveBuilding(buildingId, userIdOrNull);
         return new DormDto(d.id(), d.name(), d.lat(), d.lng(), d.roomTypes(), walk.minutesOrNull(d.lat(), d.lng(), effective));
+    }
+
+    private Long effectiveBuilding(Long buildingId, Long userIdOrNull) {
+        return buildingId != null ? buildingId
+                : userIdOrNull == null ? null : profiles.firstBuildingId(userIdOrNull).orElse(null);
     }
 
     private List<DormDto> load(Long id) {
