@@ -39,6 +39,18 @@ class AiRentServiceTest {
     }
 
     @Test
+    void realFixtures_allTwentyListingsFilledAndOrdered() {
+        AiRentService s = service(false, "classpath:fixtures/ai-rent.json");
+
+        for (long id = 1; id <= 20; id++) {
+            AiEstimate e = s.forListing(id, "사근동", 20, null, null);
+            assertThat(e).as("매물 %d", id).isNotNull();
+            assertThat(e.low()).isPositive().isLessThanOrEqualTo(e.fairRent());
+            assertThat(e.fairRent()).isLessThanOrEqualTo(e.high());
+        }
+    }
+
+    @Test
     void aiOnButUnreachable_fallsBackToFixtures() {
         AiRentService s = service(true, "classpath:test-fixtures/ai-rent.json");
 
